@@ -1,4 +1,5 @@
-﻿// -----------------------------------------------------------------------
+﻿using System.Linq;
+// -----------------------------------------------------------------------
 // <copyright file="PropertyToGenerate.cs" company="Altemiq">
 // Copyright (c) Altemiq. All rights reserved.
 // </copyright>
@@ -29,22 +30,50 @@ internal readonly record struct PropertyToGenerate(
     bool Dictionary)
 {
     /// <summary>
-    /// Initialises a new instance of the <see cref="PropertyToGenerate"/> struct.
+    /// Creates a new instance of the <see cref="PropertyToGenerate"/> struct.
     /// </summary>
     /// <param name="propertySymbol">The property symbol.</param>
     /// <param name="collectionTypeSymbol">The collection symbol.</param>
     /// <param name="dictionaryTypeSymbol">The dictionary symbol.</param>
-    public PropertyToGenerate(IPropertySymbol propertySymbol, ITypeSymbol? collectionTypeSymbol, ITypeSymbol? dictionaryTypeSymbol)
-        : this(
-              propertySymbol.Name,
-              propertySymbol.Name.Camelize(),
-              propertySymbol.Type.ToType(),
-              propertySymbol.Type.IsPrimitiveOrNullablePrimitive,
-              GetAccessibility(propertySymbol, collectionTypeSymbol),
-              propertySymbol.IsReadOnly,
-              propertySymbol.Type.IsCollection(collectionTypeSymbol),
-              propertySymbol.Type.IsDictionary(dictionaryTypeSymbol))
+    /// <returns>The property to generate.</returns>
+    public static PropertyToGenerate Create(IPropertySymbol propertySymbol, ITypeSymbol? collectionTypeSymbol, ITypeSymbol? dictionaryTypeSymbol)
     {
+        var name = propertySymbol.Name;
+        var fieldName = name.Camelize();
+        var type = propertySymbol.Type;
+        var typeSyntax = type.ToType();
+        var primitive = type.IsPrimitiveOrNullablePrimitive;
+        var readOnly = propertySymbol.IsReadOnly;
+        var collection = type.IsCollection(collectionTypeSymbol);
+        var dictionary = type.IsDictionary(dictionaryTypeSymbol);
+        var accessibility = GetAccessibility(propertySymbol, readOnly, collection);
+
+        return new(name, fieldName, typeSyntax, primitive, accessibility, readOnly, collection, dictionary);
+
+        static Microsoft.CodeAnalysis.CSharp.SyntaxKind GetAccessibility(IPropertySymbol propertySymbol, bool readOnly, bool collection)
+        {
+            if (readOnly && collection && propertySymbol.GetMethod is { DeclaredAccessibility: var getDeclaredAccessibility })
+            {
+                return getDeclaredAccessibility switch
+                {
+                    Microsoft.CodeAnalysis.Accessibility.Internal => Microsoft.CodeAnalysis.CSharp.SyntaxKind.InternalKeyword,
+                    Microsoft.CodeAnalysis.Accessibility.Public => Microsoft.CodeAnalysis.CSharp.SyntaxKind.PublicKeyword,
+                    _ => Microsoft.CodeAnalysis.CSharp.SyntaxKind.PrivateKeyword,
+                };
+            }
+
+            if (propertySymbol.SetMethod is { DeclaredAccessibility: var setDeclaredAccessibility })
+            {
+                return setDeclaredAccessibility switch
+                {
+                    Microsoft.CodeAnalysis.Accessibility.Internal => Microsoft.CodeAnalysis.CSharp.SyntaxKind.InternalKeyword,
+                    Microsoft.CodeAnalysis.Accessibility.Public => Microsoft.CodeAnalysis.CSharp.SyntaxKind.PublicKeyword,
+                    _ => Microsoft.CodeAnalysis.CSharp.SyntaxKind.PrivateKeyword,
+                };
+            }
+
+            return Microsoft.CodeAnalysis.CSharp.SyntaxKind.PrivateKeyword;
+        }
     }
 
     /// <inheritdoc/>
@@ -73,30 +102,30 @@ internal readonly record struct PropertyToGenerate(
         return hash;
     }
 
-    private static Microsoft.CodeAnalysis.CSharp.SyntaxKind GetAccessibility(IPropertySymbol propertySymbol, ITypeSymbol? collectionTypeSymbol)
+    /// <summary>
+    /// Tries to get the builder for this property.
+    /// </summary>
+    /// <param name="builders">The potential builders.</param>
+    /// <param name="builder">The builder if found.</param>
+    /// <returns><see langword="true"/> if a builder is found; otherwise <see langword="false"/>.</returns>
+    public readonly bool TryGetBuilder(IEnumerable<BuilderToGenerate> builders, out BuilderToGenerate builder)
     {
-        if (propertySymbol.IsReadOnly
-            && propertySymbol.Type.IsCollection(collectionTypeSymbol)
-            && propertySymbol.GetMethod is { DeclaredAccessibility: var getDeclaredAccessibility })
+        var type = this.Type;
+
+        if (type is Microsoft.CodeAnalysis.CSharp.Syntax.QualifiedNameSyntax { Right: Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax { TypeArgumentList.Arguments: { } arguments } })
         {
-            return getDeclaredAccessibility switch
+            // we have arguments
+            if (arguments.Count is not 1)
             {
-                Microsoft.CodeAnalysis.Accessibility.Internal => Microsoft.CodeAnalysis.CSharp.SyntaxKind.InternalKeyword,
-                Microsoft.CodeAnalysis.Accessibility.Public => Microsoft.CodeAnalysis.CSharp.SyntaxKind.PublicKeyword,
-                _ => Microsoft.CodeAnalysis.CSharp.SyntaxKind.PrivateKeyword,
-            };
+                builder = default;
+                return false;
+            }
+
+            type = arguments[0];
         }
 
-        if (propertySymbol.SetMethod is { DeclaredAccessibility: var setDeclaredAccessibility })
-        {
-            return setDeclaredAccessibility switch
-            {
-                Microsoft.CodeAnalysis.Accessibility.Internal => Microsoft.CodeAnalysis.CSharp.SyntaxKind.InternalKeyword,
-                Microsoft.CodeAnalysis.Accessibility.Public => Microsoft.CodeAnalysis.CSharp.SyntaxKind.PublicKeyword,
-                _ => Microsoft.CodeAnalysis.CSharp.SyntaxKind.PrivateKeyword,
-            };
-        }
-
-        return Microsoft.CodeAnalysis.CSharp.SyntaxKind.PrivateKeyword;
+        var typeName = type.ToFullString();
+        builder = builders.FirstOrDefault(potentialBuilder => StringComparer.Ordinal.Equals(potentialBuilder.FullyQualifiedClassName, typeName));
+        return builder.ClassName is not null;
     }
 }

@@ -55,8 +55,8 @@ internal static partial class InternalGenerator
                 IdentifierName(builderName),
                 Identifier($"Add{suffix}"))
             .WithModifiers(
-                TokenList(
-                    Token(property.Accessibility)))
+            TokenList(
+                Token(property.Accessibility)))
             .WithLeadingTrivia(
             Trivia(
                 DocumentationComment(

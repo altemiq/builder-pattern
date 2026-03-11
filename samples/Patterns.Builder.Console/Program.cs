@@ -6,28 +6,30 @@ using Microsoft.CodeAnalysis.CSharp;
 var sampleDirectory = GetSampleDirectory();
 
 // get all the syntax trees
-IList<SyntaxTree> syntaxTrees = [];
-foreach (var file in Directory.EnumerateFiles(sampleDirectory, "*.cs"))
-{
-    syntaxTrees.Add(CSharpSyntaxTree.ParseText(File.ReadAllText( file)));
-}
-
 var inputCompilation = CSharpCompilation.Create("compilation",
-    syntaxTrees,
+    Directory.EnumerateFiles(sampleDirectory, "*.cs").Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file))),
     [
         MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
         MetadataReference.CreateFromFile(typeof(Altemiq.Patterns.Builder.GenerateBuilderAttribute).Assembly.Location)],
     new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-var generator = new Altemiq.Patterns.Builder.Generator.BuilderGenerator();
-
 // Create the driver that will control the generation, passing in our generator
-GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+GeneratorDriver driver = CSharpGeneratorDriver.Create(new Altemiq.Patterns.Builder.Generator.BuilderGenerator());
 
 // Or we can look at the results directly:
 var runResult = driver
     .RunGenerators(inputCompilation)
     .GetRunResult();
+
+if (runResult.Diagnostics is { IsEmpty: false } diagnostics)
+{
+    foreach (var diagnostic in diagnostics)
+    {
+        Console.WriteLine(diagnostic.ToString());
+    }
+
+    return;
+}
 
 foreach (var generatedTree in runResult.GeneratedTrees)
 {

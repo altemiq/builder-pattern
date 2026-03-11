@@ -39,7 +39,7 @@ public class BuilderGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(
             buildersToGenerate.Combine(allBuilders).Combine(compilationDetails),
-            (context, source) => Execute(source.Left.Left, source.Left.Right, source.Right, context));
+            (context, source) => CreateNestedBuilder(source.Left.Left, source.Left.Right, source.Right, context));
 
         static BuilderToGenerate? GetNestedTypeToGenerate(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken)
         {
@@ -53,9 +53,7 @@ public class BuilderGenerator : IIncrementalGenerator
             var collectionTypeSymbol = context.SemanticModel.Compilation.GetTypeByMetadataName("System.Collections.Generic.ICollection`1");
             var dictionaryTypeSymbol = context.SemanticModel.Compilation.GetTypeByMetadataName("System.Collections.Generic.IDictionary`2");
 
-            var name = GetBuilderName(typeSymbol);
-            var @namespace = GetBuilderNamespace(typeSymbol);
-
+            var name = typeSymbol.Name + "Builder";
             var fullyQualifiedClassName = typeSymbol.ToString();
 
             // get the properties
@@ -63,17 +61,16 @@ public class BuilderGenerator : IIncrementalGenerator
                 .GetMembers()
                 .Where(m => !m.IsStatic)
                 .OfType<IPropertySymbol>()
-                .Select(propertySymbol => new PropertyToGenerate(propertySymbol, collectionTypeSymbol, dictionaryTypeSymbol))
+                .Select(propertySymbol => PropertyToGenerate.Create(propertySymbol, collectionTypeSymbol, dictionaryTypeSymbol))
                 .ToImmutableArray();
 
-            var builderFullQualitifiedName = $"{fullyQualifiedClassName}.{name}";
-
-            return new BuilderToGenerate(name, builderFullQualitifiedName, typeSymbol.Name, fullyQualifiedClassName, @namespace, properties.WithValueSemantics());
-
-            static string GetBuilderName(ITypeSymbol typeSymbol)
-            {
-                return typeSymbol.Name + "Builder";
-            }
+            return new BuilderToGenerate(
+                name,
+                $"{fullyQualifiedClassName}.{name}",
+                typeSymbol.Name,
+                fullyQualifiedClassName,
+                GetBuilderNamespace(typeSymbol),
+                properties.WithValueSemantics());
 
             static string GetBuilderNamespace(ITypeSymbol typeSymbol)
             {
@@ -81,13 +78,16 @@ public class BuilderGenerator : IIncrementalGenerator
             }
         }
 
-        static void Execute(
+        static void CreateNestedBuilder(
             in BuilderToGenerate builderToGenerate,
             in ImmutableArray<BuilderToGenerate> buildersToGenerate,
             Microsoft.CodeAnalysis.CSharp.LanguageVersion? languageVersion,
             SourceProductionContext context)
         {
-            var generatedBuilder = InternalGenerator.GenerateNestedBuilder(builderToGenerate, buildersToGenerate);
+            var useExtensionMembers = languageVersion is not LanguageVersion.Preview and >= (LanguageVersion)1400; // C#14
+            var useCollectionExpressions = languageVersion is not LanguageVersion.Preview and >= LanguageVersion.CSharp12; // C#12
+
+            var generatedBuilder = InternalGenerator.GenerateNestedBuilder(builderToGenerate, buildersToGenerate, useCollectionExpressions);
 
             context.AddSource($"{builderToGenerate.ClassName}.Builder.g.cs", generatedBuilder.NormalizeWhitespace().GetText(System.Text.Encoding.UTF8));
         }

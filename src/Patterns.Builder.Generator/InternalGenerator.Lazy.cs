@@ -125,11 +125,8 @@ internal static partial class InternalGenerator
                     ThisExpression())));
 
         // check to see if the type of class is one of the builders
-        if (builders.FirstOrDefault(b => string.Equals(b.FullyQualifiedClassName, property.Type.ToFullString(), StringComparison.Ordinal)) is { ClassName: not null } builder)
+        if (property.TryGetBuilder(builders, out var builder))
         {
-            const string ActionParameterName = "action";
-            const string BuilderVariableName = "builder";
-
             // create a method that takes the builder
             yield return MethodDeclaration(
                 IdentifierName(builderName),
@@ -178,42 +175,9 @@ internal static partial class InternalGenerator
                                         Argument(
                                             ParenthesizedLambdaExpression()
                                             .WithBlock(
-                                                Block(
-                                                    LocalDeclarationStatement(
-                                                        VariableDeclaration(
-                                                            IdentifierName(
-                                                                Identifier(
-                                                                    TriviaList(),
-                                                                    SyntaxKind.VarKeyword,
-                                                                    "var",
-                                                                    "var",
-                                                                    TriviaList())))
-                                                        .WithVariables(
-                                                            SingletonSeparatedList<VariableDeclaratorSyntax>(
-                                                                VariableDeclarator(
-                                                                    Identifier(BuilderVariableName))
-                                                                .WithInitializer(
-                                                                    EqualsValueClause(
-                                                                        ObjectCreationExpression(
-                                                                            NameHelpers.GetQualifiedName(builder.FullQualifiedBuilderName))
-                                                                        .WithArgumentList(
-                                                                            ArgumentList())))))),
-                                                    ExpressionStatement(
-                                                        InvocationExpression(
-                                                            IdentifierName(ActionParameterName))
-                                                        .WithArgumentList(
-                                                            ArgumentList(
-                                                                SingletonSeparatedList<ArgumentSyntax>(
-                                                                    Argument(
-                                                                        IdentifierName(BuilderVariableName)))))),
-                                                    ReturnStatement(
-                                                        InvocationExpression(
-                                                            MemberAccessExpression(
-                                                                SyntaxKind.SimpleMemberAccessExpression,
-                                                                IdentifierName(BuilderVariableName),
-                                                                IdentifierName(BuildMethod)))))))))))),
+                                            GetBuilderActionBlock(builder)))))))),
                     ReturnStatement(
                         ThisExpression())));
-                }
+        }
     }
 }
