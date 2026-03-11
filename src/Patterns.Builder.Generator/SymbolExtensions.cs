@@ -29,6 +29,64 @@ internal static class SymbolExtensions
         public bool IsPartial => syntax.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword));
     }
 
+    extension(Type type)
+    {
+        public NameSyntax ToTypeSyntax(params TypeSyntax[] parameters)
+        {
+            if (type.IsGenericTypeDefinition)
+            {
+                var index = type.Name.IndexOf('`');
+                var name = type.Name[..index];
+                var count = int.Parse(type.Name[(index + 1)..], System.Globalization.CultureInfo.InvariantCulture);
+                if (count != parameters.Length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(parameters));
+                }
+
+                return QualifiedName(
+                    NameHelpers.GetQualifiedName(type.Namespace),
+                    GenericName(
+                        Identifier(name))
+                    .WithTypeArgumentList(
+                        TypeArgumentList(SeparatedList(parameters))));
+            }
+
+            throw new NotSupportedException();
+        }
+
+        public NameSyntax ToTypeSyntax()
+        {
+            if (type.IsGenericType)
+            {
+                // send this back as a generic type
+                return QualifiedName(
+                    NameHelpers.GetQualifiedName(type.Namespace),
+                    GenericName(
+                        Identifier(type.Name))
+                    .WithTypeArgumentList(
+                        TypeArgumentList(
+                            GetArguments(type.GenericTypeArguments))));
+
+                static SeparatedSyntaxList<TypeSyntax> GetArguments(Type[] types)
+                {
+                    if (types.Length == 0)
+                    {
+                        return [];
+                    }
+
+                    if (types.Length is 1)
+                    {
+                        return SingletonSeparatedList<TypeSyntax>(types[0].ToTypeSyntax());
+                    }
+
+                    return SeparatedList<TypeSyntax>(types.Select(ToTypeSyntax));
+                }
+            }
+
+            return NameHelpers.GetQualifiedName(type.FullName);
+        }
+    }
+
     /// <content>
     /// The <see cref="ITypeSymbol"/> extensions.
     /// </content>

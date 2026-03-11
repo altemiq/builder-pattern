@@ -26,20 +26,22 @@ public class BuilderGenerator : IIncrementalGenerator
         var buildersToGenerate =
             context
                 .SyntaxProvider
-                .ForAttributeWithMetadataName(
+                .ForAttributeWithMetadataName<BuilderToGenerate?>(
                     TypeNames.MarkerAttribute,
                     predicate: (node, _) => node is ClassDeclarationSyntax or StructDeclarationSyntax,
-                    transform: GetTypeToGenerate)
+                    transform: GetNestedTypeToGenerate)
                 .WithTrackingName(TrackingNames.InitialExtraction)
                 .Where(static b => b is not null)
                 .Select(static (b, _) => b!.Value)
                 .WithTrackingName(TrackingNames.RemovingNulls);
 
-        context.RegisterSourceOutput(
-            buildersToGenerate.Combine(compilationDetails),
-            (context, source) => Execute(source.Left, source.Right, context));
+        var allBuilders = buildersToGenerate.Collect();
 
-        static BuilderToGenerate? GetTypeToGenerate(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken)
+        context.RegisterSourceOutput(
+            buildersToGenerate.Combine(allBuilders).Combine(compilationDetails),
+            (context, source) => Execute(source.Left.Left, source.Left.Right, source.Right, context));
+
+        static BuilderToGenerate? GetNestedTypeToGenerate(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken)
         {
             if (context.TargetSymbol is not ITypeSymbol typeSymbol)
             {
@@ -54,7 +56,7 @@ public class BuilderGenerator : IIncrementalGenerator
             var name = GetBuilderName(typeSymbol);
             var @namespace = GetBuilderNamespace(typeSymbol);
 
-            var fullyQualifiedName = typeSymbol.ToString();
+            var fullyQualifiedClassName = typeSymbol.ToString();
 
             // get the properties
             var properties = typeSymbol
@@ -64,7 +66,9 @@ public class BuilderGenerator : IIncrementalGenerator
                 .Select(propertySymbol => new PropertyToGenerate(propertySymbol, collectionTypeSymbol, dictionaryTypeSymbol))
                 .ToImmutableArray();
 
-            return new BuilderToGenerate(name, typeSymbol.Name, @namespace, fullyQualifiedName, properties.WithValueSemantics());
+            var builderFullQualitifiedName = $"{fullyQualifiedClassName}.{name}";
+
+            return new BuilderToGenerate(name, builderFullQualitifiedName, typeSymbol.Name, fullyQualifiedClassName, @namespace, properties.WithValueSemantics());
 
             static string GetBuilderName(ITypeSymbol typeSymbol)
             {
@@ -79,10 +83,11 @@ public class BuilderGenerator : IIncrementalGenerator
 
         static void Execute(
             in BuilderToGenerate builderToGenerate,
+            in ImmutableArray<BuilderToGenerate> buildersToGenerate,
             Microsoft.CodeAnalysis.CSharp.LanguageVersion? languageVersion,
             SourceProductionContext context)
         {
-            var generatedBuilder = InternalGenerator.GenerateNestedBuilder(builderToGenerate);
+            var generatedBuilder = InternalGenerator.GenerateNestedBuilder(builderToGenerate, buildersToGenerate);
 
             context.AddSource($"{builderToGenerate.ClassName}.Builder.g.cs", generatedBuilder.NormalizeWhitespace().GetText(System.Text.Encoding.UTF8));
         }

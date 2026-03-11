@@ -24,18 +24,15 @@ var generator = new Altemiq.Patterns.Builder.Generator.BuilderGenerator();
 // Create the driver that will control the generation, passing in our generator
 GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
 
-driver = driver
-    .RunGeneratorsAndUpdateCompilation(
-        inputCompilation,
-        out var outputCompilation,
-        out var diagnostics);
-
 // Or we can look at the results directly:
-var runResult = driver.GetRunResult();
+var runResult = driver
+    .RunGenerators(inputCompilation)
+    .GetRunResult();
 
-var output = runResult.GeneratedTrees.First().ToString();
-
-Console.WriteLine(output);
+foreach (var generatedTree in runResult.GeneratedTrees)
+{
+    Console.WriteLine(generatedTree.ToString());
+}
 
 static string GetSampleDirectory()
 {

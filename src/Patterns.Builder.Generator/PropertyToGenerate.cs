@@ -6,7 +6,6 @@
 
 namespace Altemiq.Patterns.Builder.Generator;
 
-using System.ComponentModel.DataAnnotations;
 using Humanizer;
 
 /// <summary>
@@ -48,20 +47,18 @@ internal readonly record struct PropertyToGenerate(
     {
     }
 
-    // Optional: implement IEquatable<Point> for performance
-    public bool Equals(PropertyToGenerate other)
-    {
-        return StringComparer.Ordinal.Equals(this.Name, other.Name)
-            && StringComparer.Ordinal.Equals(this.FieldName, other.FieldName)
-            && StringComparer.Ordinal.Equals(this.Type.ToFullString(), other.Type.ToFullString())
-            && this.Primitive == other.Primitive
-            && this.Accessibility == other.Accessibility
-            && this.ReadOnly == other.ReadOnly
-            && this.Collection == other.Collection
-            && this.Dictionary == other.Dictionary;
-    }
+    /// <inheritdoc/>
+    public readonly bool Equals(PropertyToGenerate other) => StringComparer.Ordinal.Equals(this.Name, other.Name)
+        && StringComparer.Ordinal.Equals(this.FieldName, other.FieldName)
+        && StringComparer.Ordinal.Equals(this.Type.ToFullString(), other.Type.ToFullString())
+        && this.Primitive == other.Primitive
+        && this.Accessibility == other.Accessibility
+        && this.ReadOnly == other.ReadOnly
+        && this.Collection == other.Collection
+        && this.Dictionary == other.Dictionary;
 
-    public override int GetHashCode()
+    /// <inheritdoc/>
+    public readonly override int GetHashCode()
     {
         var hash = 0;
         hash += StringComparer.Ordinal.GetHashCode(this.Name);
@@ -74,23 +71,6 @@ internal readonly record struct PropertyToGenerate(
         hash += 133 + this.Dictionary.GetHashCode();
 
         return hash;
-    }
-
-    private static bool TypeSyntaxEquals(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax first, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax second)
-    {
-        // only do the parts we are about
-        if (first == second)
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    private static int TypeSyntaxHashCode(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax first)
-    {
-        var hashCode = 0;
-        return hashCode;
     }
 
     private static Microsoft.CodeAnalysis.CSharp.SyntaxKind GetAccessibility(IPropertySymbol propertySymbol, ITypeSymbol? collectionTypeSymbol)
