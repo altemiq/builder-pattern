@@ -1,0 +1,12 @@
+<Project>
+
+  <PropertyGroup>
+    <Company>Altemiq</Company>
+    <RootNamespace>$(Company).$(MSBuildProjectName)</RootNamespace>
+    <RootNamespace>$(RootNamespace.Replace('.Tests', ''))</RootNamespace>
+    <ImplicitUsings>true</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+</Project>

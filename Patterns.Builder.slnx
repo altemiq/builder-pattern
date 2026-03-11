@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/Patterns.Builder.Console/Patterns.Builder.Console.csproj" Id="4dda68c7-9657-4de5-8509-1bd4dd2d9e8c" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="LICENSE.txt" />
+    <File Path="nuget.config" />
+  </Folder>
+  <Folder Name="/src/">
+    <File Path="src/Directory.Build.props" />
+    <File Path="src/Directory.Packages.props" />
+    <Project Path="src/Patterns.Builder.Abstractions/Patterns.Builder.Abstractions.csproj" />
+    <Project Path="src/Patterns.Builder.Generator/Patterns.Builder.Generator.csproj" Id="a21761a8-d312-4f0c-944e-2cc447afdc67" />
+    <Project Path="src/Patterns.Builder/Patterns.Builder.csproj" Id="1c544619-ec64-40c9-b314-fcedf931f658" />
+  </Folder>
+  <Folder Name="/tests/">
+    <File Path="Directory.Build.props" />
+    <Project Path="tests/Patterns.Builder.Generator.Tests/Patterns.Builder.Generator.Tests.csproj" />
+  </Folder>
+</Solution>

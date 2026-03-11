@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.0</TargetFramework>
+    <CheckNotRecommendedTargetFramework>false</CheckNotRecommendedTargetFramework>
+	  <RootNamespace>$(RootNamespace.Replace('.Abstractions', ''))</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Remove="System.Net.Http"/>
+  </ItemGroup>
+
+</Project>
