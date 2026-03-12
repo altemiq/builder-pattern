@@ -91,6 +91,7 @@ public class BuilderGeneratorTests
                             partial class Test
                             {
                                 ///<summary>Creates a new builder for a <see cref = "Test"/> instance.</summary>
+                                ///<returns>The builder for a <see cref = "Test"/> instance.</returns>
                                 public static TestBuilder CreateBuilder()
                                 {
                                     return new TestBuilder();
@@ -167,6 +168,7 @@ public class BuilderGeneratorTests
                             partial class Test
                             {
                                 ///<summary>Creates a new builder for a <see cref = "Test"/> instance.</summary>
+                                ///<returns>The builder for a <see cref = "Test"/> instance.</returns>
                                 public static TestBuilder CreateBuilder()
                                 {
                                     return new TestBuilder();

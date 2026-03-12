@@ -78,6 +78,13 @@ internal static partial class InternalGenerator
                                         NameMemberCref(
                                             IdentifierName(context.ClassName))),
                                     XmlText(" instance.")),
+                                XmlText(XmlTextNewLine(NewLine)),
+                                XmlReturnsElement(
+                                    XmlText("The builder for a "),
+                                    XmlSeeElement(
+                                        NameMemberCref(
+                                            IdentifierName(context.ClassName))),
+                                    XmlText(" instance.")),
                                 XmlText(XmlTextNewLine(NewLine, continueXmlDocumentationComment: false)))))
                     .WithBody(
                         Block(
