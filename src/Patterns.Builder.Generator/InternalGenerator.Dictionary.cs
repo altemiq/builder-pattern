@@ -122,12 +122,12 @@ internal static partial class InternalGenerator
                     Argument(
                         ObjectCreationExpression(keyValuePair)
                         .WithArgumentList(
-                            ArgumentList(
-                                SeparatedList<ArgumentSyntax>(
-                                [
-                                    Argument(IdentifierName(Key)),
-                                    Argument(IdentifierName(Value)),
-                                ])))));
+                        ArgumentList(
+                            SeparatedList<ArgumentSyntax>(
+                            [
+                                Argument(IdentifierName(Key)),
+                                Argument(IdentifierName(Value)),
+                            ])))));
             }
 
             throw new NotSupportedException();

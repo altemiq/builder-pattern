@@ -12,7 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Patterns.Builder\Patterns.Builder.csproj" />
+    <ProjectReference Include="..\..\src\Patterns.Builder.Generator\Patterns.Builder.Generator.csproj" />
+    <ProjectReference Include="..\Patterns.Builder.Examples\Patterns.Builder.Examples.csproj" />
   </ItemGroup>
 
   <ItemGroup>

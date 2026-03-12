@@ -175,7 +175,7 @@ public class BuilderGeneratorTests
                                 ///<summary>The <see cref = "Test"/> builder.</summary>
                                 public sealed partial class TestBuilder
                                 {
-                                    private System.Lazy<System.DateTime> dateTimeValue;
+                                    private System.Lazy<System.DateTime> dateTimeValue = new System.Lazy<System.DateTime>(() => default);
                                     ///<summary>Sets the <see cref = "Test.DateTimeValue"/> value.</summary>
                                     ///<param name = "dateTimeValue">The date time value value.</param>
                                     ///<returns>The builder for chaining.</returns>
@@ -188,9 +188,9 @@ public class BuilderGeneratorTests
                                     ///<summary>Sets the <see cref = "Test.DateTimeValue"/> value via a factory.</summary>
                                     ///<param name = "dateTimeValue">The date time value factory.</param>
                                     ///<returns>The builder for chaining.</returns>
-                                    public TestBuilder WithDateTimeValue(System.Lazy<System.DateTime> dateTimeValue)
+                                    public TestBuilder WithDateTimeValue(System.Func<System.DateTime> dateTimeValue)
                                     {
-                                        this.dateTimeValue = dateTimeValue;
+                                        this.dateTimeValue = new System.Lazy<System.DateTime>(dateTimeValue);
                                         return this;
                                     }
                     

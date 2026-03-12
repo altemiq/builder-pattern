@@ -19,16 +19,29 @@ internal static partial class InternalGenerator
     private static IEnumerable<MemberDeclarationSyntax> CreateLazy(string className, string builderName, PropertyToGenerate property, System.Collections.Immutable.ImmutableArray<BuilderToGenerate> builders)
     {
         var lazyType = typeof(Lazy<>).ToTypeSyntax(property.Type);
+        var funcType = typeof(Func<>).ToTypeSyntax(property.Type);
 
         yield return FieldDeclaration(
             VariableDeclaration(lazyType)
             .WithVariables(
                 SingletonSeparatedList<VariableDeclaratorSyntax>(
                     VariableDeclarator(
-                        Identifier(property.FieldName)))))
+                        Identifier(property.FieldName))
+                    .WithInitializer(
+                    EqualsValueClause(
+                        ObjectCreationExpression(lazyType)
+                        .WithArgumentList(
+                        ArgumentList(
+                            SingletonSeparatedList<ArgumentSyntax>(
+                                Argument(
+                                    ParenthesizedLambdaExpression()
+                                    .WithExpressionBody(
+                                    LiteralExpression(
+                                        SyntaxKind.DefaultLiteralExpression,
+                                        Token(SyntaxKind.DefaultKeyword))))))))))))
             .WithModifiers(
-                TokenList(
-                    Token(SyntaxKind.PrivateKeyword)));
+            TokenList(
+                Token(SyntaxKind.PrivateKeyword)));
 
         yield return MethodDeclaration(
             IdentifierName(builderName),
@@ -110,7 +123,7 @@ internal static partial class InternalGenerator
                     Parameter(
                         Identifier(property.FieldName))
                     .WithType(
-                        lazyType))))
+                        funcType))))
             .WithBody(
             Block(
                 ExpressionStatement(
@@ -120,7 +133,12 @@ internal static partial class InternalGenerator
                             SyntaxKind.SimpleMemberAccessExpression,
                             ThisExpression(),
                             IdentifierName(property.FieldName)),
-                        IdentifierName(property.FieldName))),
+                        ObjectCreationExpression(
+                            lazyType)
+                        .WithArgumentList(
+                            ArgumentList(
+                                SingletonSeparatedList<ArgumentSyntax>(
+                                    Argument(IdentifierName(property.FieldName))))))),
                 ReturnStatement(
                     ThisExpression())));
 

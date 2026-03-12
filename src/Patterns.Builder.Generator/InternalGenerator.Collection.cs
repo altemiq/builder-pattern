@@ -40,7 +40,7 @@ internal static partial class InternalGenerator
         {
             ExpressionSyntax collectionCreation = useCollectionExpressions
                 ? CollectionExpression()
-                : ObjectCreationExpression(typeof(System.Collections.Generic.List<>).ToTypeSyntax(typeArgument));
+                : ObjectCreationExpression(typeof(System.Collections.Generic.List<>).ToTypeSyntax(typeArgument)).WithArgumentList(ArgumentList());
 
             yield return FieldDeclaration(
                 VariableDeclaration(
@@ -108,7 +108,10 @@ internal static partial class InternalGenerator
 
         static IEnumerable<MemberDeclarationSyntax> GetBuilderMethods(string className, string builderName, PropertyToGenerate property, string suffix, string singularFieldName, TypeSyntax typeArgument, BuilderToGenerate builder, bool useCollectionExpressions)
         {
-            const string ActionParameter = "action";
+            ExpressionSyntax collectionCreation = useCollectionExpressions
+                ? CollectionExpression()
+                : ObjectCreationExpression(typeof(System.Collections.Generic.List<>).ToTypeSyntax(typeArgument)).WithArgumentList(ArgumentList());
+
             TypeSyntax funcType = typeof(Func<>).ToTypeSyntax(typeArgument);
 
             yield return FieldDeclaration(
@@ -120,7 +123,7 @@ internal static partial class InternalGenerator
                             Identifier(property.FieldName))
                         .WithInitializer(
                             EqualsValueClause(
-                                CollectionExpression())))));
+                                collectionCreation)))));
 
             yield return MethodDeclaration(
                 IdentifierName(builderName),
@@ -223,7 +226,7 @@ internal static partial class InternalGenerator
                 ParameterList(
                     SingletonSeparatedList<ParameterSyntax>(
                         Parameter(
-                            Identifier(ActionParameter))
+                            Identifier(ActionParameterName))
                         .WithType(
                             typeof(Action<>).ToTypeSyntax(NameHelpers.GetQualifiedName(builder.FullQualifiedBuilderName))))))
                 .WithLeadingTrivia(

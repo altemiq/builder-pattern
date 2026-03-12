@@ -11,8 +11,20 @@ namespace Altemiq.Patterns.Builder.Generator;
 /// </summary>
 internal static class TypeNames
 {
-    /// <summary>
-    /// The marker attribute.
-    /// </summary>
-    public const string MarkerAttribute = "Altemiq.Patterns.Builder.GenerateBuilderAttribute";
+    public const string GenerateBuilderForAttributeShortName = "GenerateBuilderFor";
+
+    public const string GenerateBuilderForAttributeLongName = $"{GenerateBuilderForAttributeShortName}Attribute";
+
+    public static class Markers
+    {
+        /// <summary>
+        /// The GenerateBuilder marker attribute.
+        /// </summary>
+        public const string GenerateBuilderAttribute = "Altemiq.Patterns.Builder.GenerateBuilderAttribute";
+
+        /// <summary>
+        /// The GenerateBuilderFor marker attribute.
+        /// </summary>
+        public const string GenerateBuilderForAttribute = $"Altemiq.Patterns.Builder.{GenerateBuilderForAttributeLongName}`1";
+    }
 }

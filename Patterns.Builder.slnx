@@ -16,6 +16,7 @@
   </Folder>
   <Folder Name="/tests/">
     <File Path="Directory.Build.props" />
+    <Project Path="tests/Patterns.Builder.Examples/Patterns.Builder.Examples.csproj" Id="ca19b8bf-6fc6-49cb-be57-64acae98a8e7" />
     <Project Path="tests/Patterns.Builder.Generator.Tests/Patterns.Builder.Generator.Tests.csproj" />
   </Folder>
 </Solution>

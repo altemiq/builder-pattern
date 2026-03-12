@@ -1,5 +1,4 @@
-﻿using System.Linq;
-// -----------------------------------------------------------------------
+﻿// -----------------------------------------------------------------------
 // <copyright file="PropertyToGenerate.cs" company="Altemiq">
 // Copyright (c) Altemiq. All rights reserved.
 // </copyright>
