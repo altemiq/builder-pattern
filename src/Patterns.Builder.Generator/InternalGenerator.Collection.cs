@@ -66,8 +66,8 @@ internal static partial class InternalGenerator
                 IdentifierName(builderName),
                 Identifier($"Add{suffix}"))
                 .WithModifiers(
-                    TokenList(
-                        Token(property.Accessibility)))
+                TokenList(
+                    Token(property.Accessibility)))
                 .WithLeadingTrivia(
                 Trivia(
                     DocumentationComment(
@@ -87,23 +87,23 @@ internal static partial class InternalGenerator
                         BuilderReturn,
                         XmlText(XmlTextNewLine(NewLine, continueXmlDocumentationComment: false)))))
                 .WithParameterList(
-                    ParameterList(GetParameter(typeArgument, singularFieldName)))
+                ParameterList(GetParameter(typeArgument, singularFieldName)))
                 .WithBody(
-                    Block(
-                        ExpressionStatement(
-                            InvocationExpression(
+                Block(
+                    ExpressionStatement(
+                        InvocationExpression(
+                            MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
                                 MemberAccessExpression(
                                     SyntaxKind.SimpleMemberAccessExpression,
-                                    MemberAccessExpression(
-                                        SyntaxKind.SimpleMemberAccessExpression,
-                                        ThisExpression(),
-                                        IdentifierName(property.FieldName)),
-                                    IdentifierName(nameof(ICollection<>.Add))))
-                            .WithArgumentList(
-                                ArgumentList(
-                                    GetArguments(singularFieldName)))),
-                        ReturnStatement(
-                            ThisExpression())));
+                                    ThisExpression(),
+                                    IdentifierName(property.FieldName)),
+                                IdentifierName(nameof(ICollection<>.Add))))
+                        .WithArgumentList(
+                            ArgumentList(
+                                GetArguments(singularFieldName)))),
+                    ReturnStatement(
+                        ThisExpression())));
         }
 
         static IEnumerable<MemberDeclarationSyntax> GetBuilderMethods(string className, string builderName, PropertyToGenerate property, string suffix, string singularFieldName, TypeSyntax typeArgument, BuilderToGenerate builder, bool useCollectionExpressions)
@@ -153,23 +153,24 @@ internal static partial class InternalGenerator
                 ParameterList(GetParameter(typeArgument, singularFieldName)))
                 .WithBody(
                 Block(
-                    SingletonList<StatementSyntax>(
-                        ExpressionStatement(
-                            InvocationExpression(
+                    ExpressionStatement(
+                        InvocationExpression(
+                            MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
                                 MemberAccessExpression(
                                     SyntaxKind.SimpleMemberAccessExpression,
-                                    MemberAccessExpression(
-                                        SyntaxKind.SimpleMemberAccessExpression,
-                                        ThisExpression(),
-                                        IdentifierName(property.FieldName)),
-                                    IdentifierName(nameof(ICollection<>.Add))))
-                            .WithArgumentList(
-                                ArgumentList(
-                                    SingletonSeparatedList<ArgumentSyntax>(
-                                        Argument(
-                                            ParenthesizedLambdaExpression()
-                                            .WithExpressionBody(
-                                                IdentifierName(singularFieldName))))))))));
+                                    ThisExpression(),
+                                    IdentifierName(property.FieldName)),
+                                IdentifierName(nameof(ICollection<>.Add))))
+                        .WithArgumentList(
+                            ArgumentList(
+                                SingletonSeparatedList<ArgumentSyntax>(
+                                    Argument(
+                                        ParenthesizedLambdaExpression()
+                                        .WithExpressionBody(
+                                            IdentifierName(singularFieldName))))))),
+                    ReturnStatement(
+                            ThisExpression())));
 
             yield return MethodDeclaration(
                 IdentifierName(builderName),
@@ -200,21 +201,22 @@ internal static partial class InternalGenerator
                         XmlText(XmlTextNewLine(NewLine, continueXmlDocumentationComment: false)))))
                 .WithBody(
                 Block(
-                    SingletonList<StatementSyntax>(
-                        ExpressionStatement(
-                            InvocationExpression(
+                    ExpressionStatement(
+                        InvocationExpression(
+                            MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
                                 MemberAccessExpression(
                                     SyntaxKind.SimpleMemberAccessExpression,
-                                    MemberAccessExpression(
-                                        SyntaxKind.SimpleMemberAccessExpression,
-                                        ThisExpression(),
-                                        IdentifierName(property.FieldName)),
-                                    IdentifierName(nameof(ICollection<>.Add))))
-                            .WithArgumentList(
-                                ArgumentList(
-                                    SingletonSeparatedList<ArgumentSyntax>(
-                                        Argument(
-                                            IdentifierName(singularFieldName)))))))));
+                                    ThisExpression(),
+                                    IdentifierName(property.FieldName)),
+                                IdentifierName(nameof(ICollection<>.Add))))
+                        .WithArgumentList(
+                            ArgumentList(
+                                SingletonSeparatedList<ArgumentSyntax>(
+                                    Argument(
+                                        IdentifierName(singularFieldName)))))),
+                    ReturnStatement(
+                        ThisExpression())));
 
             yield return MethodDeclaration(
                 IdentifierName(builderName),
@@ -249,23 +251,24 @@ internal static partial class InternalGenerator
                         XmlText(XmlTextNewLine(NewLine, continueXmlDocumentationComment: false)))))
                 .WithBody(
                 Block(
-                    SingletonList<StatementSyntax>(
-                        ExpressionStatement(
-                            InvocationExpression(
+                    ExpressionStatement(
+                        InvocationExpression(
+                            MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
                                 MemberAccessExpression(
                                     SyntaxKind.SimpleMemberAccessExpression,
-                                    MemberAccessExpression(
-                                        SyntaxKind.SimpleMemberAccessExpression,
-                                        ThisExpression(),
-                                        IdentifierName(property.FieldName)),
-                                    IdentifierName(nameof(ICollection<>.Add))))
-                            .WithArgumentList(
-                                ArgumentList(
-                                    SingletonSeparatedList<ArgumentSyntax>(
-                                        Argument(
-                                            ParenthesizedLambdaExpression()
-                                            .WithBlock(
-                                            GetBuilderActionBlock(builder))))))))));
+                                    ThisExpression(),
+                                    IdentifierName(property.FieldName)),
+                                IdentifierName(nameof(ICollection<>.Add))))
+                        .WithArgumentList(
+                            ArgumentList(
+                                SingletonSeparatedList<ArgumentSyntax>(
+                                    Argument(
+                                        ParenthesizedLambdaExpression()
+                                        .WithBlock(
+                                        GetBuilderActionBlock(builder))))))),
+                    ReturnStatement(
+                        ThisExpression())));
         }
     }
 

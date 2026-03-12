@@ -26,7 +26,8 @@ internal readonly record struct PropertyToGenerate(
     Microsoft.CodeAnalysis.CSharp.SyntaxKind Accessibility,
     bool ReadOnly,
     bool Collection,
-    bool Dictionary)
+    bool Dictionary,
+    bool Nullable)
 {
     /// <summary>
     /// Creates a new instance of the <see cref="PropertyToGenerate"/> struct.
@@ -46,8 +47,9 @@ internal readonly record struct PropertyToGenerate(
         var collection = type.IsCollection(collectionTypeSymbol);
         var dictionary = type.IsDictionary(dictionaryTypeSymbol);
         var accessibility = GetAccessibility(propertySymbol, readOnly, collection);
+        var nullable = !type.IsValueType && (propertySymbol.NullableAnnotation is not NullableAnnotation.None || propertySymbol.Type.NullableAnnotation is not NullableAnnotation.None);
 
-        return new(name, fieldName, typeSyntax, primitive, accessibility, readOnly, collection, dictionary);
+        return new(name, fieldName, typeSyntax, primitive, accessibility, readOnly, collection, dictionary, nullable);
 
         static Microsoft.CodeAnalysis.CSharp.SyntaxKind GetAccessibility(IPropertySymbol propertySymbol, bool readOnly, bool collection)
         {

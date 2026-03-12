@@ -27,7 +27,7 @@ public class BuilderGenerator : IIncrementalGenerator
                 .SyntaxProvider
                 .ForAttributeWithMetadataName<BuilderToGenerate?>(
                     TypeNames.Markers.GenerateBuilderAttribute,
-                    predicate: (node, _) => node is ClassDeclarationSyntax or StructDeclarationSyntax,
+                    predicate: (node, _) => node is ClassDeclarationSyntax or StructDeclarationSyntax or RecordDeclarationSyntax,
                     transform: GetNestedTypeToGenerate)
                 .WithTrackingName(TrackingNames.InitialExtraction)
                 .Where(static b => b is not null)
@@ -84,6 +84,7 @@ public class BuilderGenerator : IIncrementalGenerator
                 $"{fullyQualifiedClassName}.{name}",
                 typeSymbol.Name,
                 fullyQualifiedClassName,
+                GetClassSyntaxKind(context.TargetNode),
                 GetBuilderNamespace(typeSymbol),
                 properties.WithValueSemantics());
 
@@ -126,6 +127,7 @@ public class BuilderGenerator : IIncrementalGenerator
                         builderTypeSymbol.ToString(),
                         classTypeSymbol.Name,
                         classTypeSymbol.ToString(),
+                        GetClassSyntaxKind(context.TargetNode),
                         GetBuilderNamespace(builderTypeSymbol),
                         properties.WithValueSemantics());
 
@@ -163,6 +165,18 @@ public class BuilderGenerator : IIncrementalGenerator
             var generatedBuilder = InternalGenerator.GenerateExternalBuilder(builderToGenerate, buildersToGenerate, useCollectionExpressions);
 
             context.AddSource($"{builderToGenerate.BuilderName}.g.cs", generatedBuilder.NormalizeWhitespace().GetText(System.Text.Encoding.UTF8));
+        }
+
+        static SyntaxKind GetClassSyntaxKind(SyntaxNode targetNode)
+        {
+            return targetNode switch
+            {
+                ClassDeclarationSyntax => SyntaxKind.ClassDeclaration,
+                StructDeclarationSyntax => SyntaxKind.StructDeclaration,
+                RecordDeclarationSyntax recordDeclaration when recordDeclaration.ClassOrStructKeyword.Kind() is SyntaxKind.StructKeyword => SyntaxKind.RecordStructDeclaration,
+                RecordDeclarationSyntax => SyntaxKind.RecordDeclaration,
+                _ => throw new NotSupportedException(),
+            };
         }
     }
 }

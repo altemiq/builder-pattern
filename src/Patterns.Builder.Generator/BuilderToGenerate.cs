@@ -6,8 +6,6 @@
 
 namespace Altemiq.Patterns.Builder.Generator;
 
-using System.Collections.Immutable;
-
 /// <summary>
 /// The builder to generate.
 /// </summary>
@@ -17,4 +15,11 @@ using System.Collections.Immutable;
 /// <param name="FullyQualifiedClassName">The fully qualified class name.</param>
 /// <param name="Namespace">The namespace.</param>
 /// <param name="Properties">The properties to generate for.</param>
-internal readonly record struct BuilderToGenerate(string BuilderName, string FullQualifiedBuilderName, string ClassName, string FullyQualifiedClassName, string Namespace, IImmutableList<PropertyToGenerate> Properties);
+internal readonly record struct BuilderToGenerate(
+    string BuilderName,
+    string FullQualifiedBuilderName,
+    string ClassName,
+    string FullyQualifiedClassName,
+    Microsoft.CodeAnalysis.CSharp.SyntaxKind ClassDefinition,
+    string Namespace,
+    System.Collections.Immutable.IImmutableList<PropertyToGenerate> Properties);
