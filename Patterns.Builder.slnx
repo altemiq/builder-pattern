@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/samples/">
+    <File Path="samples/Directory.Build.props" />
     <Project Path="samples/Patterns.Builder.Console/Patterns.Builder.Console.csproj" Id="4dda68c7-9657-4de5-8509-1bd4dd2d9e8c" />
   </Folder>
   <Folder Name="/Solution Items/">
