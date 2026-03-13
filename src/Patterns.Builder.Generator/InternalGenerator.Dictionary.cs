@@ -136,7 +136,7 @@ internal static partial class InternalGenerator
 
     private static IEnumerable<ForEachStatementSyntax> GetDictionaryAssignment(IEnumerable<PropertyToGenerate> properties)
     {
-        foreach (var p in properties.Where(p => p.ReadOnly && p.Collection && p.Dictionary))
+        foreach (var p in properties.Where(p => p.Metadata.HasFlag(PropertyMetadata.ReadOnly) && p.Metadata.HasFlag(PropertyMetadata.Collection) && p.Metadata.HasFlag(PropertyMetadata.Dictionary)))
         {
             yield return ForEachStatement(
                 IdentifierName(

@@ -5,6 +5,11 @@
     <ImplicitUsings>true</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
+    <Version>0.1.0-beta.0</Version>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Packaging">
+    <Authors>rsking;altemiq</Authors>
   </PropertyGroup>
 
 </Project>

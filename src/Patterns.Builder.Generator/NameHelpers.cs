@@ -27,7 +27,7 @@ internal static class NameHelpers
     /// </summary>
     /// <param name="names">The names.</param>
     /// <returns>The qualified name.</returns>
-    /// <exception cref="InvalidOperationException"><paramref name="fullName"/> is invalid.</exception>
+    /// <exception cref="InvalidOperationException"><paramref name="names"/> is invalid.</exception>
     public static NameSyntax GetQualifiedName(IEnumerable<IdentifierNameSyntax> names)
     {
         var enumerator = names.GetEnumerator();

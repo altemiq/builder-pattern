@@ -41,7 +41,7 @@ internal static partial class InternalGenerator
     {
         return InNamespace(
             context.Namespace,
-            context.Properties.Any(static property => property.Nullable),
+            context.Properties.Any(static property => property.Metadata.HasFlag(PropertyMetadata.Nullable)),
             SingletonList<MemberDeclarationSyntax>(
             GetPartialDeclaration(context)
             .WithModifiers(TokenList(Token(SyntaxKind.PartialKeyword)))
@@ -127,7 +127,7 @@ internal static partial class InternalGenerator
     /// <returns>The generated builder.</returns>
     public static CompilationUnitSyntax GenerateExternalBuilder(BuilderToGenerate context, System.Collections.Immutable.ImmutableArray<BuilderToGenerate> builders, bool useCollectionExpressions) => InNamespace(
             context.Namespace,
-            context.Properties.Any(static property => property.Nullable),
+            context.Properties.Any(static property => property.Metadata.HasFlag(PropertyMetadata.Nullable)),
             SingletonList<MemberDeclarationSyntax>(GenerateBuilder(context, [SyntaxKind.SealedKeyword, SyntaxKind.PartialKeyword], builders, useCollectionExpressions)));
 
     private static CompilationUnitSyntax InNamespace(string @namespace, bool enableNullable, SyntaxList<MemberDeclarationSyntax> members)
@@ -176,10 +176,10 @@ internal static partial class InternalGenerator
         {
             foreach (var property in context.Properties)
             {
-                if (property.ReadOnly)
+                if (property.Metadata.HasFlag(PropertyMetadata.ReadOnly))
                 {
                     // check to see if the type is a read-only collection
-                    if (property.Dictionary)
+                    if (property.Metadata.HasFlag(PropertyMetadata.Dictionary))
                     {
                         foreach (var member in CreateDictionaryMembers(context.ClassName, context.BuilderName, property))
                         {
@@ -190,7 +190,7 @@ internal static partial class InternalGenerator
                     }
 
                     // check to see if the type is a read-only collection
-                    if (property.Collection)
+                    if (property.Metadata.HasFlag(PropertyMetadata.Collection))
                     {
                         foreach (var member in CreateCollectionMembers(context.ClassName, context.BuilderName, property, builders, useCollectionExpressions))
                         {
@@ -202,7 +202,7 @@ internal static partial class InternalGenerator
                 }
 
                 // check to see if the type is a primitive
-                if (property.Primitive)
+                if (property.Metadata.HasFlag(PropertyMetadata.Primitive))
                 {
                     foreach (var member in CreatePrimitive(context.ClassName, context.BuilderName, property))
                     {
@@ -288,7 +288,7 @@ internal static partial class InternalGenerator
                 static IEnumerable<ExpressionSyntax> GetAssignmentExpressions(IEnumerable<PropertyToGenerate> properties)
                 {
                     return properties
-                        .Where(property => !property.ReadOnly)
+                        .Where(property => !property.Metadata.HasFlag(PropertyMetadata.ReadOnly))
                         .Select(property =>
                             AssignmentExpression(
                                 SyntaxKind.SimpleAssignmentExpression,
@@ -301,7 +301,7 @@ internal static partial class InternalGenerator
                             SyntaxKind.SimpleMemberAccessExpression,
                             ThisExpression(),
                             IdentifierName(property.FieldName));
-                        if (!property.Primitive)
+                        if (!property.Metadata.HasFlag(PropertyMetadata.Primitive))
                         {
                             memberAccess = MemberAccessExpression(
                                 SyntaxKind.SimpleMemberAccessExpression,

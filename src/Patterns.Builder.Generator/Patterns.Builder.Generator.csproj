@@ -3,24 +3,26 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
-    <IsPackable>true</IsPackable>
-    <GenerateDocumentationFile>false</GenerateDocumentationFile>
 
     <MeziantouPolyfill_IncludedPolyfills>T:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute|T:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute|T:System.Index|T:System.Range|T:System.Runtime.CompilerServices.IsExternalInit</MeziantouPolyfill_IncludedPolyfills>
   </PropertyGroup>
 
+  <PropertyGroup Label="Packaging">
+    <IsPackable>true</IsPackable>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <PackageTags>source;generator;patterns;builder</PackageTags>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="Humanizer.Core" VersionOverride="3.0.1" GeneratePathProperty="true" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="4.10.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" VersionOverride="3.11.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Meziantou.Polyfill">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="Humanizer.Core" VersionOverride="3.0.1" GeneratePathProperty="true" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="4.10.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" VersionOverride="3.11.0" PrivateAssets="All" />
+    <PackageReference Include="Meziantou.Polyfill" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Patterns.Builder.Attributes\Patterns.Builder.Attributes.csproj" ReferenceOutputAssembly="false" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,14 +35,32 @@
     </Compile>
   </ItemGroup>
 
-  <!-- This ensures the library will be packaged as a source generator when we use `dotnet pack` -->
+  <PropertyGroup>
+    <AttributesOutputPath>..\Patterns.Builder.Attributes\bin\$(Configuration)\netstandard1.0</AttributesOutputPath>
+    <AttributesIntermediateOutputPath>..\Patterns.Builder.Attributes\obj\$(Configuration)\netstandard1.0</AttributesIntermediateOutputPath>
+  </PropertyGroup>
+
   <ItemGroup>
+    <!-- This ensures the library will be packaged as a source generator when we use `dotnet pack` -->
     <None Include="$(PkgHumanizer_Core)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+
+    <!-- include the attributes as libs -->
+    <None Include="$(AttributesOutputPath)\Altemiq.Patterns.Builder.Attributes.dll" Pack="true" PackagePath="lib\netstandard1.0" Visible="false" />
+    <None Include="$(AttributesOutputPath)\Altemiq.Patterns.Builder.Attributes.xml" Pack="true" PackagePath="lib\netstandard1.0" Visible="false" />
+    <None Include="$(AttributesOutputPath)\Altemiq.Patterns.Builder.Attributes.dll" Pack="true" PackagePath="lib\net45" Visible="false" />
+    <None Include="$(AttributesOutputPath)\Altemiq.Patterns.Builder.Attributes.xml" Pack="true" PackagePath="lib\net45" Visible="false" />
+
+    <!-- include the attributes as ref -->
+    <None Include="$(AttributesIntermediateOutputPath)\ref\Altemiq.Patterns.Builder.Attributes.dll" Pack="true" PackagePath="ref\netstandard1.0" Visible="false" />
+    <None Include="$(AttributesOutputPath)\Altemiq.Patterns.Builder.Attributes.xml" Pack="true" PackagePath="ref\netstandard1.0" Visible="false" />
+    <None Include="$(AttributesIntermediateOutputPath)\ref\Altemiq.Patterns.Builder.Attributes.dll" Pack="true" PackagePath="ref\net45" Visible="false" />
+    <None Include="$(AttributesOutputPath)\Altemiq.Patterns.Builder.Attributes.xml" Pack="true" PackagePath="ref\net45" Visible="false" />
   </ItemGroup>
 
   <PropertyGroup>
     <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <Target Name="GetDependencyTargetPaths" AfterTargets="ResolvePackageDependenciesForBuild">

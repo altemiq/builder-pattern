@@ -3,7 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard1.0</TargetFramework>
     <CheckNotRecommendedTargetFramework>false</CheckNotRecommendedTargetFramework>
-	  <RootNamespace>$(RootNamespace.Replace('.Abstractions', ''))</RootNamespace>
+	  <RootNamespace>$(RootNamespace.Replace('.Attributes', ''))</RootNamespace>
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+    <NoWarn>$(NoWarn);S2326</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

@@ -274,7 +274,7 @@ internal static partial class InternalGenerator
 
     private static IEnumerable<ForEachStatementSyntax> GetCollectionAssignment(IEnumerable<PropertyToGenerate> properties, IEnumerable<BuilderToGenerate> builders)
     {
-        foreach (var property in properties.Where(p => p.ReadOnly && p.Collection && !p.Dictionary))
+        foreach (var property in properties.Where(p => p.Metadata.HasFlag(PropertyMetadata.ReadOnly) && p.Metadata.HasFlag(PropertyMetadata.Collection) && !p.Metadata.HasFlag(PropertyMetadata.Dictionary)))
         {
             ExpressionSyntax expression = IdentifierName(Item);
 

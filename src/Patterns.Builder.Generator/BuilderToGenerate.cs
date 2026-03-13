@@ -13,6 +13,7 @@ namespace Altemiq.Patterns.Builder.Generator;
 /// <param name="FullQualifiedBuilderName">The fully qualified builder name.</param>
 /// <param name="ClassName">The class name.</param>
 /// <param name="FullyQualifiedClassName">The fully qualified class name.</param>
+/// <param name="ClassDefinition">The class definition, such as class, struct, record, etc.</param>
 /// <param name="Namespace">The namespace.</param>
 /// <param name="Properties">The properties to generate for.</param>
 internal readonly record struct BuilderToGenerate(

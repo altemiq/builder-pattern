@@ -10,9 +10,8 @@
   <Folder Name="/src/">
     <File Path="src/Directory.Build.props" />
     <File Path="src/Directory.Packages.props" />
-    <Project Path="src/Patterns.Builder.Abstractions/Patterns.Builder.Abstractions.csproj" />
+    <Project Path="src/Patterns.Builder.Attributes/Patterns.Builder.Attributes.csproj" />
     <Project Path="src/Patterns.Builder.Generator/Patterns.Builder.Generator.csproj" Id="a21761a8-d312-4f0c-944e-2cc447afdc67" />
-    <Project Path="src/Patterns.Builder/Patterns.Builder.csproj" Id="1c544619-ec64-40c9-b314-fcedf931f658" />
   </Folder>
   <Folder Name="/tests/">
     <File Path="Directory.Build.props" />

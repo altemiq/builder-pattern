@@ -14,20 +14,14 @@ using Humanizer;
 /// <param name="Name">The name.</param>
 /// <param name="FieldName">The field name.</param>
 /// <param name="Type">The type.</param>
-/// <param name="Primitive">Whether this is a primitive.</param>
+/// <param name="Metadata">The property metadata.</param>
 /// <param name="Accessibility">The accessibility.</param>
-/// <param name="Collection">Whether this is a collection.</param>
-/// <param name="Dictionary">Whether this is a dictionary.</param>
 internal readonly record struct PropertyToGenerate(
     string Name,
     string FieldName,
     Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax Type,
-    bool Primitive,
-    Microsoft.CodeAnalysis.CSharp.SyntaxKind Accessibility,
-    bool ReadOnly,
-    bool Collection,
-    bool Dictionary,
-    bool Nullable)
+    PropertyMetadata Metadata,
+    Microsoft.CodeAnalysis.CSharp.SyntaxKind Accessibility)
 {
     /// <summary>
     /// Creates a new instance of the <see cref="PropertyToGenerate"/> struct.
@@ -42,18 +36,40 @@ internal readonly record struct PropertyToGenerate(
         var fieldName = name.Camelize();
         var type = propertySymbol.Type;
         var typeSyntax = type.ToType();
-        var primitive = type.IsPrimitiveOrNullablePrimitive;
-        var readOnly = propertySymbol.IsReadOnly;
-        var collection = type.IsCollection(collectionTypeSymbol);
-        var dictionary = type.IsDictionary(dictionaryTypeSymbol);
-        var accessibility = GetAccessibility(propertySymbol, readOnly, collection);
-        var nullable = !type.IsValueType && (propertySymbol.NullableAnnotation is not NullableAnnotation.None || propertySymbol.Type.NullableAnnotation is not NullableAnnotation.None);
 
-        return new(name, fieldName, typeSyntax, primitive, accessibility, readOnly, collection, dictionary, nullable);
+        var metadata = PropertyMetadata.None;
 
-        static Microsoft.CodeAnalysis.CSharp.SyntaxKind GetAccessibility(IPropertySymbol propertySymbol, bool readOnly, bool collection)
+        if (type.IsPrimitiveOrNullablePrimitive)
         {
-            if (readOnly && collection && propertySymbol.GetMethod is { DeclaredAccessibility: var getDeclaredAccessibility })
+            metadata |= PropertyMetadata.Primitive;
+        }
+
+        if (propertySymbol.IsReadOnly)
+        {
+            metadata |= PropertyMetadata.ReadOnly;
+        }
+
+        if (type.IsCollection(collectionTypeSymbol))
+        {
+            metadata |= PropertyMetadata.Collection;
+        }
+
+        if (type.IsDictionary(dictionaryTypeSymbol))
+        {
+            metadata |= PropertyMetadata.Dictionary;
+        }
+
+        if (!type.IsValueType && (propertySymbol.NullableAnnotation is not NullableAnnotation.None || propertySymbol.Type.NullableAnnotation is not NullableAnnotation.None))
+        {
+            metadata |= PropertyMetadata.Nullable;
+        }
+
+        var accessibility = GetAccessibility(propertySymbol, metadata);
+        return new(name, fieldName, typeSyntax, metadata, accessibility);
+
+        static Microsoft.CodeAnalysis.CSharp.SyntaxKind GetAccessibility(IPropertySymbol propertySymbol, PropertyMetadata metadata)
+        {
+            if (metadata.HasFlag(PropertyMetadata.ReadOnly) && metadata.HasFlag(PropertyMetadata.Collection) && propertySymbol.GetMethod is { DeclaredAccessibility: var getDeclaredAccessibility })
             {
                 return getDeclaredAccessibility switch
                 {
@@ -81,11 +97,8 @@ internal readonly record struct PropertyToGenerate(
     public readonly bool Equals(PropertyToGenerate other) => StringComparer.Ordinal.Equals(this.Name, other.Name)
         && StringComparer.Ordinal.Equals(this.FieldName, other.FieldName)
         && StringComparer.Ordinal.Equals(this.Type.ToFullString(), other.Type.ToFullString())
-        && this.Primitive == other.Primitive
-        && this.Accessibility == other.Accessibility
-        && this.ReadOnly == other.ReadOnly
-        && this.Collection == other.Collection
-        && this.Dictionary == other.Dictionary;
+        && this.Metadata == other.Metadata
+        && this.Accessibility == other.Accessibility;
 
     /// <inheritdoc/>
     public readonly override int GetHashCode()
@@ -94,11 +107,8 @@ internal readonly record struct PropertyToGenerate(
         hash += StringComparer.Ordinal.GetHashCode(this.Name);
         hash += 19 + StringComparer.Ordinal.GetHashCode(this.Name);
         hash += 38 + StringComparer.Ordinal.GetHashCode(this.Type.ToFullString());
-        hash += 57 + this.Primitive.GetHashCode();
+        hash += 57 + this.Metadata.GetHashCode();
         hash += 76 + this.Accessibility.GetHashCode();
-        hash += 95 + this.ReadOnly.GetHashCode();
-        hash += 114 + this.Collection.GetHashCode();
-        hash += 133 + this.Dictionary.GetHashCode();
 
         return hash;
     }
