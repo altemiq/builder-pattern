@@ -10,19 +10,123 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
+  test:
+    strategy:
+      matrix:
+        os: [ windows-latest, ubuntu-latest, ubuntu-22.04 ]
+    runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v6
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v5
-      with:
-        dotnet-version: 10.0.x
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+      - uses: actions/checkout@v6
+      
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      
+      - name: Run local/dotnet-restore@v1
+        run: dotnet restore
+      
+      - name: Run local/dotnet-build@v1
+        run: dotnet build --no-restore
+      
+      - name: Run local/dotnet-test@v1
+        run: dotnet test --no-build --verbosity normal
+      
+  get-version:
+    runs-on: ubuntu-latest
+
+    outputs:
+      semver: ${{ steps.versions.outputs.semver }}
+      version: ${{ steps.versions.outputs.version }}
+      prefix: ${{ steps.versions.outputs.prefix }}
+      suffix: ${{ steps.versions.outputs.suffix }}
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Run local/get-properties@v1
+        id: msbuild
+        working-directory: src/Patterns.Builder.Generator
+        run: |
+          suffix=alpha
+          if [ ${{ github.event_name }} == push ];
+          then
+            suffix=beta;
+          fi
+          
+          properties=$(echo "$(dotnet msbuild -getProperty:Version,VersionPrefix,VersionSuffix /p:VersionSuffix=$suffix)"  | tr -d '\n')
+          
+          echo "properties=$properties" >> $GITHUB_OUTPUT
+
+      - name: Run local/get-version@v1
+        id: versions
+        run: |
+          echo "semver=${{ fromJSON(steps.msbuild.outputs.properties).Properties.Version }}.${{ github.run_number }}" >> $GITHUB_OUTPUT
+          echo "version=${{ fromJSON(steps.msbuild.outputs.properties).Properties.Version }}" >> $GITHUB_OUTPUT
+          echo "prefix=${{ fromJSON(steps.msbuild.outputs.properties).Properties.VersionPrefix }}" >> $GITHUB_OUTPUT
+          echo "suffix=${{ fromJSON(steps.msbuild.outputs.properties).Properties.VersionSuffix }}" >> $GITHUB_OUTPUT
+      
+  pack:
+    runs-on: ubuntu-latest
+    needs: [ get-version ]
+    
+    steps:
+      - uses: actions/checkout@v6
+      
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      
+      - name: Run local/dotnet-restore@v1
+        run: dotnet restore
+      
+      - name: Run local/dotnet-pack@v1
+        run: >
+          dotnet pack
+          --output ${{ github.workspace }}/nupkg
+          --version ${{ needs.get-version.outputs.prefix }}
+          /p:PackageVersion=${{ needs.get-version.outputs.semver }}
+          
+      - uses: actions/upload-artifact@v6
+        with:
+          name: nuget
+          if-no-files-found: error
+          retention-days: 7
+          path: ${{ github.workspace }}/nupkg
+        
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      packages: write
+      actions: write
+      contents: write
+    runs-on: ubuntu-latest
+    needs: [ test, pack, get-version ]
+    
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: nuget
+          path: ${{ github.workspace }}/nupkg
+          
+      - uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ github.actor }}
+      
+      - name: Run local/dotnet-nuget-push-nuget@v1
+        id: push
+        if: ${{ github.event_name == 'push' }}
+        working-directory: ${{ github.workspace }}/nupkg
+        run: dotnet nuget push *.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --skip-duplicate
+      
+      - uses: GeekyEggo/delete-artifact@v5
+        if: ${{ steps.push.conclusion == 'success' }}
+        with:
+          name: NuPkg
