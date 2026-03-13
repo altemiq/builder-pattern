@@ -151,7 +151,7 @@ public class BuilderGenerator : IIncrementalGenerator
 
             var generatedBuilder = InternalGenerator.GenerateNestedBuilder(builderToGenerate, buildersToGenerate, useCollectionExpressions);
 
-            context.AddSource($"{builderToGenerate.ClassName}.Builder.g.cs", generatedBuilder.NormalizeWhitespace().GetText(System.Text.Encoding.UTF8));
+            context.AddSource($"{builderToGenerate.ClassName}.Builder.g.cs", generatedBuilder.NormalizeWhitespace(eol: Constants.NewLine).GetText(System.Text.Encoding.UTF8));
         }
 
         static void CreateExternalBuilder(
@@ -164,7 +164,7 @@ public class BuilderGenerator : IIncrementalGenerator
 
             var generatedBuilder = InternalGenerator.GenerateExternalBuilder(builderToGenerate, buildersToGenerate, useCollectionExpressions);
 
-            context.AddSource($"{builderToGenerate.BuilderName}.g.cs", generatedBuilder.NormalizeWhitespace().GetText(System.Text.Encoding.UTF8));
+            context.AddSource($"{builderToGenerate.BuilderName}.g.cs", generatedBuilder.NormalizeWhitespace(eol: Constants.NewLine).GetText(System.Text.Encoding.UTF8));
         }
 
         static SyntaxKind GetClassSyntaxKind(SyntaxNode targetNode)

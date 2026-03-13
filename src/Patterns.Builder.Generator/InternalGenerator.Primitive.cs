@@ -45,13 +45,13 @@ internal static partial class InternalGenerator
                                 NameMemberCref(
                                     IdentifierName(property.Name)))),
                         XmlText(" value.")),
-                    XmlText(XmlTextNewLine(NewLine)),
+                    XmlText(XmlTextNewLine(Constants.NewLine)),
                     XmlParamElement(
                         property.FieldName,
                         XmlText($"The {property.FieldName.Humanize(LetterCasing.LowerCase)} value.")),
-                    XmlText(XmlTextNewLine(NewLine)),
+                    XmlText(XmlTextNewLine(Constants.NewLine)),
                     BuilderReturn,
-                    XmlText(XmlTextNewLine(NewLine, continueXmlDocumentationComment: false)))))
+                    XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
             .WithParameterList(
             ParameterList(
                 SingletonSeparatedList<ParameterSyntax>(

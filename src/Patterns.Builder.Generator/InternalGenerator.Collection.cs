@@ -79,13 +79,13 @@ internal static partial class InternalGenerator
                                     NameMemberCref(
                                         IdentifierName(property.Name)))),
                             XmlText(" collection.")),
-                        XmlText(XmlTextNewLine(NewLine)),
+                        XmlText(XmlTextNewLine(Constants.NewLine)),
                         XmlParamElement(
                             singularFieldName,
                             XmlText($"The {singularFieldName.Humanize(LetterCasing.LowerCase)} to add.")),
-                        XmlText(XmlTextNewLine(NewLine)),
+                        XmlText(XmlTextNewLine(Constants.NewLine)),
                         BuilderReturn,
-                        XmlText(XmlTextNewLine(NewLine, continueXmlDocumentationComment: false)))))
+                        XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
                 .WithParameterList(
                 ParameterList(GetParameter(typeArgument, singularFieldName)))
                 .WithBody(
@@ -142,13 +142,13 @@ internal static partial class InternalGenerator
                                     NameMemberCref(
                                         IdentifierName(property.Name)))),
                             XmlText(" collection.")),
-                        XmlText(XmlTextNewLine(NewLine)),
+                        XmlText(XmlTextNewLine(Constants.NewLine)),
                         XmlParamElement(
                             singularFieldName,
                             XmlText($"The {singularFieldName.Humanize(LetterCasing.LowerCase)} to add.")),
-                        XmlText(XmlTextNewLine(NewLine)),
+                        XmlText(XmlTextNewLine(Constants.NewLine)),
                         BuilderReturn,
-                        XmlText(XmlTextNewLine(NewLine, continueXmlDocumentationComment: false)))))
+                        XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
                 .WithParameterList(
                 ParameterList(GetParameter(typeArgument, singularFieldName)))
                 .WithBody(
@@ -192,13 +192,13 @@ internal static partial class InternalGenerator
                                     NameMemberCref(
                                         IdentifierName(property.Name)))),
                             XmlText(" collection via a factory.")),
-                        XmlText(XmlTextNewLine(NewLine)),
+                        XmlText(XmlTextNewLine(Constants.NewLine)),
                         XmlParamElement(
                             property.FieldName,
                             XmlText($"The {property.FieldName.Humanize(LetterCasing.LowerCase)} factory.")),
-                        XmlText(XmlTextNewLine(NewLine)),
+                        XmlText(XmlTextNewLine(Constants.NewLine)),
                         BuilderReturn,
-                        XmlText(XmlTextNewLine(NewLine, continueXmlDocumentationComment: false)))))
+                        XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
                 .WithBody(
                 Block(
                     ExpressionStatement(
@@ -242,13 +242,13 @@ internal static partial class InternalGenerator
                                     NameMemberCref(
                                         IdentifierName(property.Name)))),
                             XmlText(" collection via a builder.")),
-                        XmlText(XmlTextNewLine(NewLine)),
+                        XmlText(XmlTextNewLine(Constants.NewLine)),
                         XmlParamElement(
                             property.FieldName,
                             XmlText($"The {property.FieldName.Humanize(LetterCasing.LowerCase)} action.")),
-                        XmlText(XmlTextNewLine(NewLine)),
+                        XmlText(XmlTextNewLine(Constants.NewLine)),
                         BuilderReturn,
-                        XmlText(XmlTextNewLine(NewLine, continueXmlDocumentationComment: false)))))
+                        XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
                 .WithBody(
                 Block(
                     ExpressionStatement(

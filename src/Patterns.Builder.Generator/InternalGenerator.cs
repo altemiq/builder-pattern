@@ -19,10 +19,6 @@ internal static partial class InternalGenerator
     private const string Value = "value";
     private const string Item = "item";
     private const string KeyValuePair = "kvp";
-
-    private const string NewLine = @"
-";
-
     private const string CreateBuilderMethod = "CreateBuilder";
     private const string BuildMethod = "Build";
     private const string ActionParameterName = "action";
@@ -58,7 +54,7 @@ internal static partial class InternalGenerator
                                     IdentifierName(context.ClassName))),
                             XmlText(" builder methods."),
                         ])),
-                    XmlText(XmlTextNewLine(NewLine, continueXmlDocumentationComment: false)))))
+                    XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
             .WithMembers(
                 List<MemberDeclarationSyntax>(
                     [
@@ -78,14 +74,14 @@ internal static partial class InternalGenerator
                                         NameMemberCref(
                                             IdentifierName(context.ClassName))),
                                     XmlText(" instance.")),
-                                XmlText(XmlTextNewLine(NewLine)),
+                                XmlText(XmlTextNewLine(Constants.NewLine)),
                                 XmlReturnsElement(
                                     XmlText("The builder for a "),
                                     XmlSeeElement(
                                         NameMemberCref(
                                             IdentifierName(context.ClassName))),
                                     XmlText(" instance.")),
-                                XmlText(XmlTextNewLine(NewLine, continueXmlDocumentationComment: false)))))
+                                XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
                     .WithBody(
                         Block(
                             SingletonList<StatementSyntax>(
@@ -169,7 +165,7 @@ internal static partial class InternalGenerator
                             NameMemberCref(
                                 IdentifierName(context.ClassName))),
                         XmlText(" builder.")),
-                    XmlText(XmlTextNewLine(NewLine, continueXmlDocumentationComment: false)))))
+                    XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
             .WithMembers([.. CreateMembers(context, builders, useCollectionExpressions)]);
 
         static IEnumerable<MemberDeclarationSyntax> CreateMembers(BuilderToGenerate context, System.Collections.Immutable.ImmutableArray<BuilderToGenerate> builders, bool useCollectionExpressions)
@@ -234,14 +230,14 @@ internal static partial class InternalGenerator
                                 NameMemberCref(
                                     IdentifierName(context.ClassName))),
                             XmlText(".")),
-                        XmlText(XmlTextNewLine(NewLine)),
+                        XmlText(XmlTextNewLine(Constants.NewLine)),
                         XmlReturnsElement(
                             XmlText("The instance of "),
                             XmlSeeElement(
                                 NameMemberCref(
                                     IdentifierName(context.ClassName))),
                             XmlText(".")),
-                        XmlText(XmlTextNewLine(NewLine, continueXmlDocumentationComment: false)))))
+                        XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
                 .WithBody(
                 Block(
                     GetBodyStatements(context, builders)));

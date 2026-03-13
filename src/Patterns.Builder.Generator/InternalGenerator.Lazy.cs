@@ -60,13 +60,13 @@ internal static partial class InternalGenerator
                                 NameMemberCref(
                                     IdentifierName(property.Name)))),
                         XmlText(" value.")),
-                    XmlText(XmlTextNewLine(NewLine)),
+                    XmlText(XmlTextNewLine(Constants.NewLine)),
                     XmlParamElement(
                         property.FieldName,
                         XmlText($"The {property.FieldName.Humanize(LetterCasing.LowerCase)} value.")),
-                    XmlText(XmlTextNewLine(NewLine)),
+                    XmlText(XmlTextNewLine(Constants.NewLine)),
                     BuilderReturn,
-                    XmlText(XmlTextNewLine(NewLine, continueXmlDocumentationComment: false)))))
+                    XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
             .WithParameterList(
             ParameterList(
                 SingletonSeparatedList<ParameterSyntax>(
@@ -110,13 +110,13 @@ internal static partial class InternalGenerator
                                 NameMemberCref(
                                     IdentifierName(property.Name)))),
                         XmlText(" value via a factory.")),
-                    XmlText(XmlTextNewLine(NewLine)),
+                    XmlText(XmlTextNewLine(Constants.NewLine)),
                     XmlParamElement(
                         property.FieldName,
                         XmlText($"The {property.FieldName.Humanize(LetterCasing.LowerCase)} factory.")),
-                    XmlText(XmlTextNewLine(NewLine)),
+                    XmlText(XmlTextNewLine(Constants.NewLine)),
                     BuilderReturn,
-                    XmlText(XmlTextNewLine(NewLine, continueXmlDocumentationComment: false)))))
+                    XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
             .WithParameterList(
             ParameterList(
                 SingletonSeparatedList<ParameterSyntax>(
@@ -163,13 +163,13 @@ internal static partial class InternalGenerator
                                     NameMemberCref(
                                         IdentifierName(property.Name)))),
                             XmlText(" value via a builder.")),
-                        XmlText(XmlTextNewLine(NewLine)),
+                        XmlText(XmlTextNewLine(Constants.NewLine)),
                         XmlParamElement(
                             ActionParameterName,
                             XmlText($"The {property.FieldName.Humanize(LetterCasing.LowerCase)} action.")),
-                        XmlText(XmlTextNewLine(NewLine)),
+                        XmlText(XmlTextNewLine(Constants.NewLine)),
                         BuilderReturn,
-                        XmlText(XmlTextNewLine(NewLine, continueXmlDocumentationComment: false)))))
+                        XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
                 .WithParameterList(
                 ParameterList(
                     SingletonSeparatedList<ParameterSyntax>(
