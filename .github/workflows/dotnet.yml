@@ -17,7 +17,7 @@ jobs:
           - windows-latest
           - ubuntu-latest
           - ubuntu-22.04
-        dotnet
+        dotnet:
           - version: 8.0.x
             framework: net8.0
           - version: 9.0.x

@@ -3,7 +3,7 @@
 
 # dotnet
 dotnet_diagnostic.IDE0001.severity=none
-dotnet_diagnostic.IDE0130.severity=none
+dotnet_style_namespace_match_folder=none
 
 # Resharper
 resharper_check_namespace_highlighting=none
