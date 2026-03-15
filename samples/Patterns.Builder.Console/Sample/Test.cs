@@ -1,6 +1,4 @@
-﻿#pragma warning disable IDE0001, IDE0130
-
-namespace MyNamespace.MyCode
+﻿namespace MyNamespace.MyCode
 {
     [Altemiq.Patterns.Builder.GenerateBuilder]
     public partial class Test

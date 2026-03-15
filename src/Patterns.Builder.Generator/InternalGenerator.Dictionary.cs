@@ -28,7 +28,7 @@ internal static partial class InternalGenerator
         var keyValuePairName = QualifiedName(
             genericCollectionNamespace,
             GenericName(
-                Identifier(nameof(System.Collections.Generic.KeyValuePair<,>)))
+                Identifier(nameof(KeyValuePair<,>)))
             .WithTypeArgumentList(
                 TypeArgumentList(
                     typeArguments)));
@@ -38,13 +38,13 @@ internal static partial class InternalGenerator
                 QualifiedName(
                     genericCollectionNamespace,
                     GenericName(
-                        Identifier(nameof(System.Collections.Generic.ICollection<>)))
+                        Identifier(nameof(ICollection<>)))
                     .WithTypeArgumentList(
                         TypeArgumentList(
                             SingletonSeparatedList<TypeSyntax>(
                                 keyValuePairName)))))
             .WithVariables(
-                SingletonSeparatedList<VariableDeclaratorSyntax>(
+                SingletonSeparatedList(
                     VariableDeclarator(
                         Identifier(property.FieldName))
                     .WithInitializer(
@@ -118,7 +118,7 @@ internal static partial class InternalGenerator
             if (types.Count is 2)
             {
                 // return as key/value pair
-                return SingletonSeparatedList<ArgumentSyntax>(
+                return SingletonSeparatedList(
                     Argument(
                         ObjectCreationExpression(keyValuePair)
                         .WithArgumentList(
@@ -161,7 +161,7 @@ internal static partial class InternalGenerator
                                         SyntaxKind.SimpleMemberAccessExpression,
                                         IdentifierName(Value),
                                         IdentifierName(p.Name)),
-                                    IdentifierName(nameof(System.Collections.Generic.IDictionary<,>.Add))))
+                                    IdentifierName(nameof(IDictionary<,>.Add))))
                             .WithArgumentList(
                                 ArgumentList(
                                     SeparatedList<ArgumentSyntax>(

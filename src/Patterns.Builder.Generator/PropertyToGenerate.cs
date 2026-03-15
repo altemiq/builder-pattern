@@ -94,14 +94,14 @@ internal readonly record struct PropertyToGenerate(
     }
 
     /// <inheritdoc/>
-    public readonly bool Equals(PropertyToGenerate other) => StringComparer.Ordinal.Equals(this.Name, other.Name)
-        && StringComparer.Ordinal.Equals(this.FieldName, other.FieldName)
-        && StringComparer.Ordinal.Equals(this.Type.ToFullString(), other.Type.ToFullString())
-        && this.Metadata == other.Metadata
-        && this.Accessibility == other.Accessibility;
+    public bool Equals(PropertyToGenerate other) => StringComparer.Ordinal.Equals(this.Name, other.Name)
+                                                    && StringComparer.Ordinal.Equals(this.FieldName, other.FieldName)
+                                                    && StringComparer.Ordinal.Equals(this.Type.ToFullString(), other.Type.ToFullString())
+                                                    && this.Metadata == other.Metadata
+                                                    && this.Accessibility == other.Accessibility;
 
     /// <inheritdoc/>
-    public readonly override int GetHashCode()
+    public override int GetHashCode()
     {
         var hash = 0;
         hash += StringComparer.Ordinal.GetHashCode(this.Name);
@@ -119,7 +119,7 @@ internal readonly record struct PropertyToGenerate(
     /// <param name="builders">The potential builders.</param>
     /// <param name="builder">The builder if found.</param>
     /// <returns><see langword="true"/> if a builder is found; otherwise <see langword="false"/>.</returns>
-    public readonly bool TryGetBuilder(IEnumerable<BuilderToGenerate> builders, out BuilderToGenerate builder)
+    public bool TryGetBuilder(IEnumerable<BuilderToGenerate> builders, out BuilderToGenerate builder)
     {
         var type = this.Type;
 

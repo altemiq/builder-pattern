@@ -28,19 +28,19 @@ internal static partial class InternalGenerator
 
         static SeparatedSyntaxList<ParameterSyntax> GetParameter(TypeSyntax type, string singleName)
         {
-            return SingletonSeparatedList<ParameterSyntax>(Parameter(Identifier(singleName)).WithType(type));
+            return SingletonSeparatedList(Parameter(Identifier(singleName)).WithType(type));
         }
 
         static SeparatedSyntaxList<ArgumentSyntax> GetArguments(string pluralName)
         {
-            return SingletonSeparatedList<ArgumentSyntax>(Argument(IdentifierName(pluralName.Singularize())));
+            return SingletonSeparatedList(Argument(IdentifierName(pluralName.Singularize())));
         }
 
         static IEnumerable<MemberDeclarationSyntax> GetBasicMembers(string className, string builderName, PropertyToGenerate property, string suffix, string singularFieldName, TypeSyntax typeArgument, bool useCollectionExpressions)
         {
             ExpressionSyntax collectionCreation = useCollectionExpressions
                 ? CollectionExpression()
-                : ObjectCreationExpression(typeof(System.Collections.Generic.List<>).ToTypeSyntax(typeArgument)).WithArgumentList(ArgumentList());
+                : ObjectCreationExpression(typeof(List<>).ToTypeSyntax([typeArgument])).WithArgumentList(ArgumentList());
 
             yield return FieldDeclaration(
                 VariableDeclaration(
@@ -51,11 +51,11 @@ internal static partial class InternalGenerator
                                 IdentifierName(nameof(System.Collections))),
                             IdentifierName(nameof(System.Collections.Generic))),
                         GenericName(
-                            Identifier(nameof(System.Collections.Generic.ICollection<>)))
+                            Identifier(nameof(ICollection<>)))
                             .WithTypeArgumentList(
                                 TypeArgumentList(SingletonSeparatedList(typeArgument)))))
                         .WithVariables(
-                            SingletonSeparatedList<VariableDeclaratorSyntax>(
+                            SingletonSeparatedList(
                                 VariableDeclarator(
                                     Identifier(property.FieldName))
                                 .WithInitializer(
@@ -110,15 +110,15 @@ internal static partial class InternalGenerator
         {
             ExpressionSyntax collectionCreation = useCollectionExpressions
                 ? CollectionExpression()
-                : ObjectCreationExpression(typeof(System.Collections.Generic.List<>).ToTypeSyntax(typeArgument)).WithArgumentList(ArgumentList());
+                : ObjectCreationExpression(typeof(List<>).ToTypeSyntax([typeArgument])).WithArgumentList(ArgumentList());
 
-            TypeSyntax funcType = typeof(Func<>).ToTypeSyntax(typeArgument);
+            TypeSyntax funcType = typeof(Func<>).ToTypeSyntax([typeArgument]);
 
             yield return FieldDeclaration(
                 VariableDeclaration(
-                    typeof(System.Collections.Generic.ICollection<>).ToTypeSyntax(funcType))
+                    typeof(ICollection<>).ToTypeSyntax([funcType]))
                 .WithVariables(
-                    SingletonSeparatedList<VariableDeclaratorSyntax>(
+                    SingletonSeparatedList(
                         VariableDeclarator(
                             Identifier(property.FieldName))
                         .WithInitializer(
@@ -164,7 +164,7 @@ internal static partial class InternalGenerator
                                 IdentifierName(nameof(ICollection<>.Add))))
                         .WithArgumentList(
                             ArgumentList(
-                                SingletonSeparatedList<ArgumentSyntax>(
+                                SingletonSeparatedList(
                                     Argument(
                                         ParenthesizedLambdaExpression()
                                         .WithExpressionBody(
@@ -212,7 +212,7 @@ internal static partial class InternalGenerator
                                 IdentifierName(nameof(ICollection<>.Add))))
                         .WithArgumentList(
                             ArgumentList(
-                                SingletonSeparatedList<ArgumentSyntax>(
+                                SingletonSeparatedList(
                                     Argument(
                                         IdentifierName(singularFieldName)))))),
                     ReturnStatement(
@@ -226,11 +226,11 @@ internal static partial class InternalGenerator
                     Token(property.Accessibility)))
                 .WithParameterList(
                 ParameterList(
-                    SingletonSeparatedList<ParameterSyntax>(
+                    SingletonSeparatedList(
                         Parameter(
                             Identifier(ActionParameterName))
                         .WithType(
-                            typeof(Action<>).ToTypeSyntax(NameHelpers.GetQualifiedName(builder.FullQualifiedBuilderName))))))
+                            typeof(Action<>).ToTypeSyntax([NameHelpers.GetQualifiedName(builder.FullQualifiedBuilderName)])))))
                 .WithLeadingTrivia(
                 Trivia(
                     DocumentationComment(
@@ -262,7 +262,7 @@ internal static partial class InternalGenerator
                                 IdentifierName(nameof(ICollection<>.Add))))
                         .WithArgumentList(
                             ArgumentList(
-                                SingletonSeparatedList<ArgumentSyntax>(
+                                SingletonSeparatedList(
                                     Argument(
                                         ParenthesizedLambdaExpression()
                                         .WithBlock(
@@ -272,7 +272,7 @@ internal static partial class InternalGenerator
         }
     }
 
-    private static IEnumerable<ForEachStatementSyntax> GetCollectionAssignment(IEnumerable<PropertyToGenerate> properties, IEnumerable<BuilderToGenerate> builders)
+    private static IEnumerable<ForEachStatementSyntax> GetCollectionAssignment(IEnumerable<PropertyToGenerate> properties, ICollection<BuilderToGenerate> builders)
     {
         foreach (var property in properties.Where(p => p.Metadata.HasFlag(PropertyMetadata.ReadOnly) && p.Metadata.HasFlag(PropertyMetadata.Collection) && !p.Metadata.HasFlag(PropertyMetadata.Dictionary)))
         {
@@ -308,10 +308,10 @@ internal static partial class InternalGenerator
                                         SyntaxKind.SimpleMemberAccessExpression,
                                         IdentifierName(Value),
                                         IdentifierName(property.Name)),
-                                    IdentifierName(nameof(System.Collections.Generic.ICollection<>.Add))))
+                                    IdentifierName(nameof(ICollection<>.Add))))
                             .WithArgumentList(
                                 ArgumentList(
-                                    SingletonSeparatedList<ArgumentSyntax>(
+                                    SingletonSeparatedList(
                                         Argument(
                                             expression))))))));
         }

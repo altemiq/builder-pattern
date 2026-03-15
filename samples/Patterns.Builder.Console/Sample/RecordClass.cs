@@ -1,8 +1,7 @@
-﻿#pragma warning disable IDE0001, IDE0130
-
-namespace Altemiq.Patterns.Builder.Console.Sample
+﻿namespace Altemiq.Patterns.Builder.Console.Sample
 {
     [Altemiq.Patterns.Builder.GenerateBuilder]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("ReSharper", "RedundantRecordClassKeyword")]
     public record class RecordClass
     {
         public int NotNullable { get; set; }

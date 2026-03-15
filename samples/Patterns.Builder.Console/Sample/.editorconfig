@@ -1,0 +1,14 @@
+# C# files
+[*.cs]
+
+# dotnet
+dotnet_diagnostic.IDE0001.severity=none
+dotnet_diagnostic.IDE0130.severity=none
+
+# Resharper
+resharper_check_namespace_highlighting=none
+resharper_class_never_instantiated_global_highlighting=none
+resharper_partial_type_with_single_part_highlighting=none
+resharper_redundant_name_qualifier_highlighting=none
+resharper_unused_member_global_highlighting=none
+resharper_unused_type_global_highlighting=none

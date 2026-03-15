@@ -24,7 +24,7 @@ internal static class ImmutableExtensions
     /// <returns>The list with value semantics.</returns>
     public static IImmutableList<T> WithValueSemantics<T>(this IImmutableList<T> list) => new ImmutableListWithValueSemantics<T>(list);
 
-    private readonly struct ImmutableListWithValueSemantics<T>(IImmutableList<T> list) : IImmutableList<T>, IEquatable<IImmutableList<T>>
+    private readonly struct ImmutableListWithValueSemantics<T>(IImmutableList<T> list) : IImmutableList<T>, IEquatable<IImmutableList<T>?>
     {
         public int Count => list.Count;
 
@@ -62,9 +62,9 @@ internal static class ImmutableExtensions
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => list.GetEnumerator();
 
-        public override bool Equals(object obj) => obj is IImmutableList<T> immutableList && this.Equals(immutableList);
+        public override bool Equals(object? obj) => obj is IImmutableList<T> immutableList && this.Equals(immutableList);
 
-        public bool Equals(IImmutableList<T> other) => this.SequenceEqual(other ?? ImmutableList<T>.Empty);
+        public bool Equals(IImmutableList<T>? other) => this.SequenceEqual(other ?? ImmutableList<T>.Empty);
 
         public override int GetHashCode()
         {

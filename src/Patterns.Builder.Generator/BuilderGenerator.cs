@@ -25,7 +25,7 @@ public class BuilderGenerator : IIncrementalGenerator
         var nestedBuildersToGenerate =
             context
                 .SyntaxProvider
-                .ForAttributeWithMetadataName<BuilderToGenerate?>(
+                .ForAttributeWithMetadataName(
                     TypeNames.Markers.GenerateBuilderAttribute,
                     predicate: (node, _) => node is ClassDeclarationSyntax or StructDeclarationSyntax or RecordDeclarationSyntax,
                     transform: GetNestedTypeToGenerate)
@@ -37,7 +37,7 @@ public class BuilderGenerator : IIncrementalGenerator
         var externalBuildersToGenerate =
             context
                 .SyntaxProvider
-                .ForAttributeWithMetadataName<BuilderToGenerate?>(
+                .ForAttributeWithMetadataName(
                     TypeNames.Markers.GenerateBuilderForAttribute,
                     predicate: (node, _) => node is ClassDeclarationSyntax,
                     transform: GetExternalTypeToGenerate)
@@ -50,11 +50,11 @@ public class BuilderGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(
             nestedBuildersToGenerate.Combine(allBuilders).Combine(compilationDetails),
-            (context, source) => CreateNestedBuilder(source.Left.Left, source.Left.Right, source.Right, context));
+            (spc, source) => CreateNestedBuilder(source.Left.Left, source.Left.Right, source.Right, spc));
 
         context.RegisterSourceOutput(
             externalBuildersToGenerate.Combine(allBuilders).Combine(compilationDetails),
-            (context, source) => CreateExternalBuilder(source.Left.Left, source.Left.Right, source.Right, context));
+            (spc, source) => CreateExternalBuilder(source.Left.Left, source.Left.Right, source.Right, spc));
 
         static BuilderToGenerate? GetNestedTypeToGenerate(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken)
         {
@@ -144,7 +144,7 @@ public class BuilderGenerator : IIncrementalGenerator
         static void CreateNestedBuilder(
             in BuilderToGenerate builderToGenerate,
             in ImmutableArray<BuilderToGenerate> buildersToGenerate,
-            Microsoft.CodeAnalysis.CSharp.LanguageVersion? languageVersion,
+            LanguageVersion? languageVersion,
             SourceProductionContext context)
         {
             var useCollectionExpressions = languageVersion is not LanguageVersion.Preview and >= LanguageVersion.CSharp12; // C#12
@@ -157,7 +157,7 @@ public class BuilderGenerator : IIncrementalGenerator
         static void CreateExternalBuilder(
             in BuilderToGenerate builderToGenerate,
             in ImmutableArray<BuilderToGenerate> buildersToGenerate,
-            Microsoft.CodeAnalysis.CSharp.LanguageVersion? languageVersion,
+            LanguageVersion? languageVersion,
             SourceProductionContext context)
         {
             var useCollectionExpressions = languageVersion is not LanguageVersion.Preview and >= LanguageVersion.CSharp12; // C#12

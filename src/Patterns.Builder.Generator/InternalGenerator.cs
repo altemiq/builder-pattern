@@ -254,7 +254,7 @@ internal static partial class InternalGenerator
                                     "var",
                                     TriviaList())))
                         .WithVariables(
-                            SingletonSeparatedList<VariableDeclaratorSyntax>(
+                            SingletonSeparatedList(
                                 VariableDeclarator(
                                     Identifier(Value))
                                 .WithInitializer(
@@ -266,7 +266,7 @@ internal static partial class InternalGenerator
                                         .WithInitializer(
                                             InitializerExpression(
                                                 SyntaxKind.ObjectInitializerExpression,
-                                                SeparatedList<ExpressionSyntax>(
+                                                SeparatedList(
                                                     GetAssignmentExpressions(context.Properties)))))))));
 
                 foreach (var collection in GetCollectionAssignment(context.Properties, builders))
@@ -334,7 +334,7 @@ internal static partial class InternalGenerator
                             "var",
                             TriviaList())))
                 .WithVariables(
-                SingletonSeparatedList<VariableDeclaratorSyntax>(
+                SingletonSeparatedList(
                     VariableDeclarator(
                         Identifier(BuilderVariableName))
                     .WithInitializer(
@@ -348,7 +348,7 @@ internal static partial class InternalGenerator
                     IdentifierName(ActionParameterName))
                 .WithArgumentList(
                 ArgumentList(
-                    SingletonSeparatedList<ArgumentSyntax>(
+                    SingletonSeparatedList(
                         Argument(
                             IdentifierName(BuilderVariableName)))))),
             ReturnStatement(

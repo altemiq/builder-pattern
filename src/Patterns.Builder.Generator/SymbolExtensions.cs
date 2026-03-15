@@ -20,7 +20,7 @@ internal static class SymbolExtensions
     /// <content>
     /// The <see cref="MemberDeclarationSyntax"/> extensions.
     /// </content>
-    /// <param name="syntax"></param>
+    /// <param name="syntax">The syntax.</param>
     extension(MemberDeclarationSyntax syntax)
     {
         /// <summary>
@@ -29,61 +29,41 @@ internal static class SymbolExtensions
         public bool IsPartial => syntax.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword));
     }
 
+    /// <content>
+    /// The <see cref="Type"/> extensions.
+    /// </content>
+    /// <param name="type">The type.</param>
     extension(Type type)
     {
-        public NameSyntax ToTypeSyntax(params TypeSyntax[] parameters)
+        /// <summary>
+        /// Converts the type to the <see cref="TypeSyntax"/>.
+        /// </summary>
+        /// <param name="parameters">The type parameters.</param>
+        /// <returns>The type syntax.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">The parameters are the wrong length.</exception>
+        public NameSyntax ToTypeSyntax(IEnumerable<TypeSyntax> parameters)
         {
-            if (type.IsGenericTypeDefinition)
+            if (!type.IsGenericTypeDefinition)
             {
-                var index = type.Name.IndexOf('`');
-                var name = type.Name[..index];
-                var count = int.Parse(type.Name[(index + 1)..], System.Globalization.CultureInfo.InvariantCulture);
-                if (count != parameters.Length)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(parameters));
-                }
+                return NameHelpers.GetQualifiedName(type.FullName);
+            }
 
-                return QualifiedName(
-                    NameHelpers.GetQualifiedName(type.Namespace),
-                    GenericName(
+            var index = type.Name.IndexOf('`');
+            var name = type.Name[..index];
+            var count = int.Parse(type.Name[(index + 1)..], System.Globalization.CultureInfo.InvariantCulture);
+
+            var parameterList = SeparatedList(parameters);
+            if (count != parameterList.Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(parameters));
+            }
+
+            return QualifiedName(
+                NameHelpers.GetQualifiedName(type.Namespace),
+                GenericName(
                         Identifier(name))
                     .WithTypeArgumentList(
-                        TypeArgumentList(SeparatedList(parameters))));
-            }
-
-            throw new NotSupportedException();
-        }
-
-        public NameSyntax ToTypeSyntax()
-        {
-            if (type.IsGenericType)
-            {
-                // send this back as a generic type
-                return QualifiedName(
-                    NameHelpers.GetQualifiedName(type.Namespace),
-                    GenericName(
-                        Identifier(type.Name))
-                    .WithTypeArgumentList(
-                        TypeArgumentList(
-                            GetArguments(type.GenericTypeArguments))));
-
-                static SeparatedSyntaxList<TypeSyntax> GetArguments(Type[] types)
-                {
-                    if (types.Length == 0)
-                    {
-                        return [];
-                    }
-
-                    if (types.Length is 1)
-                    {
-                        return SingletonSeparatedList<TypeSyntax>(types[0].ToTypeSyntax());
-                    }
-
-                    return SeparatedList<TypeSyntax>(types.Select(ToTypeSyntax));
-                }
-            }
-
-            return NameHelpers.GetQualifiedName(type.FullName);
+                        TypeArgumentList(parameterList)));
         }
     }
 
@@ -173,7 +153,7 @@ internal static class SymbolExtensions
 
                         if (!typeArguments.MoveNext())
                         {
-                            return SingletonSeparatedList<TypeSyntax>(first.ToType());
+                            return SingletonSeparatedList(first.ToType());
                         }
 
                         var arguments = new List<TypeSyntax>

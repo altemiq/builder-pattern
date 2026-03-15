@@ -18,13 +18,13 @@ internal static partial class InternalGenerator
 {
     private static IEnumerable<MemberDeclarationSyntax> CreateLazy(string className, string builderName, PropertyToGenerate property, System.Collections.Immutable.ImmutableArray<BuilderToGenerate> builders)
     {
-        var lazyType = typeof(Lazy<>).ToTypeSyntax(property.Type);
-        var funcType = typeof(Func<>).ToTypeSyntax(property.Type);
+        var lazyType = typeof(Lazy<>).ToTypeSyntax([property.Type]);
+        var funcType = typeof(Func<>).ToTypeSyntax([property.Type]);
 
         yield return FieldDeclaration(
             VariableDeclaration(lazyType)
             .WithVariables(
-                SingletonSeparatedList<VariableDeclaratorSyntax>(
+                SingletonSeparatedList(
                     VariableDeclarator(
                         Identifier(property.FieldName))
                     .WithInitializer(
@@ -32,7 +32,7 @@ internal static partial class InternalGenerator
                         ObjectCreationExpression(lazyType)
                         .WithArgumentList(
                         ArgumentList(
-                            SingletonSeparatedList<ArgumentSyntax>(
+                            SingletonSeparatedList(
                                 Argument(
                                     ParenthesizedLambdaExpression()
                                     .WithExpressionBody(
@@ -69,7 +69,7 @@ internal static partial class InternalGenerator
                     XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
             .WithParameterList(
             ParameterList(
-                SingletonSeparatedList<ParameterSyntax>(
+                SingletonSeparatedList(
                     Parameter(Identifier(property.FieldName))
                     .WithType(property.Type))))
             .WithBody(
@@ -85,7 +85,7 @@ internal static partial class InternalGenerator
                             lazyType)
                         .WithArgumentList(
                             ArgumentList(
-                                SingletonSeparatedList<ArgumentSyntax>(
+                                SingletonSeparatedList(
                                     Argument(
                                         ParenthesizedLambdaExpression()
                                         .WithExpressionBody(
@@ -119,7 +119,7 @@ internal static partial class InternalGenerator
                     XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
             .WithParameterList(
             ParameterList(
-                SingletonSeparatedList<ParameterSyntax>(
+                SingletonSeparatedList(
                     Parameter(
                         Identifier(property.FieldName))
                     .WithType(
@@ -137,7 +137,7 @@ internal static partial class InternalGenerator
                             lazyType)
                         .WithArgumentList(
                             ArgumentList(
-                                SingletonSeparatedList<ArgumentSyntax>(
+                                SingletonSeparatedList(
                                     Argument(IdentifierName(property.FieldName))))))),
                 ReturnStatement(
                     ThisExpression())));
@@ -172,11 +172,11 @@ internal static partial class InternalGenerator
                         XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
                 .WithParameterList(
                 ParameterList(
-                    SingletonSeparatedList<ParameterSyntax>(
+                    SingletonSeparatedList(
                         Parameter(
                             Identifier(ActionParameterName))
                         .WithType(
-                            typeof(System.Action<>).ToTypeSyntax(NameHelpers.GetQualifiedName(builder.FullQualifiedBuilderName))))))
+                            typeof(Action<>).ToTypeSyntax([NameHelpers.GetQualifiedName(builder.FullQualifiedBuilderName)])))))
                 .WithBody(
                 Block(
                     ExpressionStatement(
@@ -189,7 +189,7 @@ internal static partial class InternalGenerator
                             ObjectCreationExpression(lazyType)
                             .WithArgumentList(
                                 ArgumentList(
-                                    SingletonSeparatedList<ArgumentSyntax>(
+                                    SingletonSeparatedList(
                                         Argument(
                                             ParenthesizedLambdaExpression()
                                             .WithBlock(

@@ -20,7 +20,7 @@ internal static class NameHelpers
     /// <param name="fullName">The full name.</param>
     /// <returns>The qualified name.</returns>
     /// <exception cref="InvalidOperationException"><paramref name="fullName"/> is invalid.</exception>
-    public static NameSyntax GetQualifiedName(string fullName) => GetQualifiedName(GetNames(fullName));
+    public static NameSyntax GetQualifiedName(string? fullName) => GetQualifiedName(GetNames(fullName));
 
     /// <summary>
     /// Gets the qualified name.
@@ -33,7 +33,7 @@ internal static class NameHelpers
         var enumerator = names.GetEnumerator();
         _ = enumerator.MoveNext();
 
-        NameSyntax name = enumerator.Current;
+        NameSyntax? name = enumerator.Current;
         while (enumerator.MoveNext() && name is not null && enumerator.Current is not null)
         {
             name = SyntaxFactory.QualifiedName(name, enumerator.Current);
@@ -48,9 +48,13 @@ internal static class NameHelpers
     /// </summary>
     /// <param name="fullName">The full name.</param>
     /// <returns>The names.</returns>
-    public static IEnumerable<IdentifierNameSyntax> GetNames(string fullName)
+    public static IEnumerable<IdentifierNameSyntax> GetNames(string? fullName)
     {
-        return fullName.Split('.').Select(RemoveAttribute).Select(SyntaxFactory.IdentifierName);
+        return fullName switch
+        {
+            null => [],
+            { } f => f.Split('.').Select(RemoveAttribute).Select(SyntaxFactory.IdentifierName),
+        };
 
         static string RemoveAttribute(string name)
         {

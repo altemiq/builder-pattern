@@ -21,7 +21,7 @@ internal static partial class InternalGenerator
         yield return FieldDeclaration(
             VariableDeclaration(property.Type)
             .WithVariables(
-                SingletonSeparatedList<VariableDeclaratorSyntax>(
+                SingletonSeparatedList(
                     VariableDeclarator(
                         Identifier(property.FieldName)))))
             .WithModifiers(
@@ -54,7 +54,7 @@ internal static partial class InternalGenerator
                     XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
             .WithParameterList(
             ParameterList(
-                SingletonSeparatedList<ParameterSyntax>(
+                SingletonSeparatedList(
                     Parameter(Identifier(property.FieldName))
                     .WithType(property.Type))))
             .WithBody(
