@@ -6,7 +6,6 @@
     <RootNamespace>$(RootNamespace.Replace('.Tests', ''))</RootNamespace>
     <ImplicitUsings>true</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <LangVersion>latest</LangVersion>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 

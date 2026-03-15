@@ -13,7 +13,17 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ windows-latest, ubuntu-latest, ubuntu-22.04 ]
+        os: 
+          - windows-latest
+          - ubuntu-latest
+          - ubuntu-22.04
+        dotnet
+          - version: 8.0.x
+            framework: net8.0
+          - version: 9.0.x
+            framework: net9.0
+          - version: 10.0.x
+            framework: net10.0
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -21,16 +31,13 @@ jobs:
       
       - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: ${{ matrix.dotnet.version }}
       
       - name: Run local/dotnet-restore@v1
         run: dotnet restore
       
-      - name: Run local/dotnet-build@v1
-        run: dotnet build --no-restore
-      
       - name: Run local/dotnet-test@v1
-        run: dotnet test --no-build --verbosity normal
+        run: dotnet test --framework ${{ matrix.dotnet.framework }} --verbosity normal
       
   get-version:
     runs-on: ubuntu-latest
