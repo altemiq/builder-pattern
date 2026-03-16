@@ -4,6 +4,9 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 
+    <!-- do not produce the reference assembly -->
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+
     <MeziantouPolyfill_IncludedPolyfills>T:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute|T:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute|T:System.Index|T:System.Range|T:System.Runtime.CompilerServices.IsExternalInit</MeziantouPolyfill_IncludedPolyfills>
   </PropertyGroup>
 
