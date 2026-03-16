@@ -46,7 +46,10 @@ public class BuilderGenerator : IIncrementalGenerator
                 .Select(static (b, _) => b!.Value)
                 .WithTrackingName(TrackingNames.RemovingNulls);
 
-        var allBuilders = nestedBuildersToGenerate.Collect();
+        var allBuilders = nestedBuildersToGenerate
+            .Collect()
+            .Combine(externalBuildersToGenerate.Collect())
+            .Select((value, _) => value.Left.AddRange(value.Right));
 
         context.RegisterSourceOutput(
             nestedBuildersToGenerate.Combine(allBuilders).Combine(compilationDetails),
