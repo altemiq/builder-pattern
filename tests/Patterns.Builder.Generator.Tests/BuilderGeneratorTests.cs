@@ -27,7 +27,7 @@ public class BuilderGeneratorTests
                 MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(GenerateBuilderAttribute).Assembly.Location),
             ],
-            new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            new(OutputKind.DynamicallyLinkedLibrary));
 
         var generator = new BuilderGenerator();
         var sourceGenerator = generator.AsSourceGenerator();
@@ -70,6 +70,7 @@ public class BuilderGeneratorTests
                     [Altemiq.Patterns.Builder.GenerateBuilder]
                     public partial class Test
                     {
+                        [System.ComponentModel.DefaultValue(5)]
                         public int PrimitiveValue { get; set; }
                     }
                 }
@@ -104,7 +105,7 @@ public class BuilderGeneratorTests
                                 ///<summary>The <see cref = "Test"/> builder.</summary>
                                 public sealed partial class TestBuilder
                                 {
-                                    private int primitiveValue;
+                                    private int primitiveValue = 5;
                                     ///<summary>Sets the <see cref = "Test.PrimitiveValue"/> value.</summary>
                                     ///<param name = "primitiveValue">The primitive value value.</param>
                                     ///<returns>The builder for chaining.</returns>

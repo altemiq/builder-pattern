@@ -357,4 +357,49 @@ internal static partial class InternalGenerator
                         SyntaxKind.SimpleMemberAccessExpression,
                         IdentifierName(BuilderVariableName),
                         IdentifierName(BuildMethod)))));
+
+    private static ExpressionSyntax CreateExpressionFromTypedConstant(TypedConstant constant) =>
+        constant switch
+        {
+            { IsNull: true } => LiteralExpression(SyntaxKind.NullLiteralExpression),
+            { Kind: TypedConstantKind.Primitive } => LiteralExpression(
+                GetLiteralExpressionKind(constant.Value),
+                GetLiteralSyntaxToken(constant.Value)),
+            { Kind: TypedConstantKind.Enum } => MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                IdentifierName(constant.Type?.Name ?? string.Empty),
+                IdentifierName(constant.Value?.ToString() ?? string.Empty)),
+            _ => throw new NotSupportedException($"Unsupported TypedConstantKind: {constant.Kind}"),
+        };
+
+    private static SyntaxKind GetLiteralExpressionKind(object? value) =>
+        value switch
+        {
+            int or double or float => SyntaxKind.NumericLiteralExpression,
+            true => SyntaxKind.TrueLiteralExpression,
+            false => SyntaxKind.FalseLiteralExpression,
+            char => SyntaxKind.CharacterLiteralExpression,
+            null => SyntaxKind.NullLiteralExpression,
+            _ => SyntaxKind.StringLiteralExpression,
+        };
+
+    private static SyntaxToken GetLiteralSyntaxToken(object? value) =>
+        value switch
+        {
+            sbyte i => Literal(i),
+            byte i => Literal(i),
+            short i => Literal(i),
+            ushort i => Literal(i),
+            int i => Literal(i),
+            uint i => Literal(i),
+            long i => Literal(i),
+            ulong i => Literal(i),
+            float f => Literal(f),
+            double f => Literal(f),
+            decimal f => Literal(f),
+            char c => Literal(c),
+            string s => Literal(s),
+            not null => Literal(value.ToString()),
+            _ => Token(SyntaxKind.NullKeyword),
+        };
 }

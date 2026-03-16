@@ -16,12 +16,14 @@ using Humanizer;
 /// <param name="Type">The type.</param>
 /// <param name="Metadata">The property metadata.</param>
 /// <param name="Accessibility">The accessibility.</param>
+/// <param name="DefaultValue">The optional default value.</param>
 internal readonly record struct PropertyToGenerate(
     string Name,
     string FieldName,
     Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax Type,
     PropertyMetadata Metadata,
-    Microsoft.CodeAnalysis.CSharp.SyntaxKind Accessibility)
+    Microsoft.CodeAnalysis.CSharp.SyntaxKind Accessibility,
+    TypedConstant? DefaultValue)
 {
     /// <summary>
     /// Creates a new instance of the <see cref="PropertyToGenerate"/> struct.
@@ -65,7 +67,8 @@ internal readonly record struct PropertyToGenerate(
         }
 
         var accessibility = GetAccessibility(propertySymbol, metadata);
-        return new(name, fieldName, typeSyntax, metadata, accessibility);
+        var defaultValue = GetDefaultValue(propertySymbol);
+        return new(name, fieldName, typeSyntax, metadata, accessibility, defaultValue);
 
         static Microsoft.CodeAnalysis.CSharp.SyntaxKind GetAccessibility(IPropertySymbol propertySymbol, PropertyMetadata metadata)
         {
@@ -91,6 +94,22 @@ internal readonly record struct PropertyToGenerate(
 
             return Microsoft.CodeAnalysis.CSharp.SyntaxKind.PrivateKeyword;
         }
+
+        static TypedConstant? GetDefaultValue(IPropertySymbol propertySymbol)
+        {
+            foreach (var attribute in propertySymbol.GetAttributes())
+            {
+                if (attribute is { AttributeClass.Name: { } name }
+                    && (StringComparer.Ordinal.Equals(name, TypeNames.DefaultValueAttributeShortName) ||
+                        StringComparer.Ordinal.Equals(name, TypeNames.DefaultValueAttributeLongName))
+                    && attribute.ConstructorArguments is [var defaultValueConstant])
+                {
+                    return defaultValueConstant;
+                }
+            }
+
+            return default;
+        }
     }
 
     /// <inheritdoc/>
@@ -98,7 +117,8 @@ internal readonly record struct PropertyToGenerate(
                                                     && StringComparer.Ordinal.Equals(this.FieldName, other.FieldName)
                                                     && StringComparer.Ordinal.Equals(this.Type.ToFullString(), other.Type.ToFullString())
                                                     && this.Metadata == other.Metadata
-                                                    && this.Accessibility == other.Accessibility;
+                                                    && this.Accessibility == other.Accessibility
+                                                    && this.DefaultValue.GetValueOrDefault().Equals(other.DefaultValue.GetValueOrDefault());
 
     /// <inheritdoc/>
     public override int GetHashCode()
@@ -109,6 +129,10 @@ internal readonly record struct PropertyToGenerate(
         hash += 38 + StringComparer.Ordinal.GetHashCode(this.Type.ToFullString());
         hash += 57 + this.Metadata.GetHashCode();
         hash += 76 + this.Accessibility.GetHashCode();
+        if (this.DefaultValue is { } defaultValue)
+        {
+            hash += 95 + defaultValue.GetHashCode();
+        }
 
         return hash;
     }

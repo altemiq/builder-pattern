@@ -22,6 +22,16 @@ internal static class TypeNames
     public const string GenerateBuilderForAttributeLongName = $"{GenerateBuilderForAttributeShortName}Attribute";
 
     /// <summary>
+    /// The DefaultValue short name.
+    /// </summary>
+    public const string DefaultValueAttributeShortName = "DefaultValue";
+
+    /// <summary>
+    /// The DefaultValue long name.
+    /// </summary>
+    public const string DefaultValueAttributeLongName = $"{DefaultValueAttributeShortName}Attribute";
+
+    /// <summary>
     /// The markers.
     /// </summary>
     public static class Markers

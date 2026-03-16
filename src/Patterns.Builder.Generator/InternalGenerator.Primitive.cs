@@ -18,12 +18,21 @@ internal static partial class InternalGenerator
 {
     private static IEnumerable<MemberDeclarationSyntax> CreatePrimitive(string className, string builderName, PropertyToGenerate property)
     {
+        var variableDeclarator = VariableDeclarator(
+            Identifier(property.FieldName));
+
+        if (property.DefaultValue is { } defaultValue)
+        {
+            variableDeclarator = variableDeclarator
+                .WithInitializer(
+                    EqualsValueClause(CreateExpressionFromTypedConstant(defaultValue)));
+        }
+
         yield return FieldDeclaration(
             VariableDeclaration(property.Type)
             .WithVariables(
                 SingletonSeparatedList(
-                    VariableDeclarator(
-                        Identifier(property.FieldName)))))
+                    variableDeclarator)))
             .WithModifiers(
             TokenList(
                 Token(SyntaxKind.PrivateKeyword)));
