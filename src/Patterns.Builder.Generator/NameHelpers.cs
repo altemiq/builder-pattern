@@ -52,47 +52,24 @@ internal static class NameHelpers
     /// <param name="fullName">The full name.</param>
     /// <returns>The qualified name.</returns>
     /// <exception cref="InvalidOperationException"><paramref name="fullName"/> is invalid.</exception>
-    public static NameSyntax GetQualifiedName(string? fullName) => GetQualifiedName(GetNames(fullName));
-
-    /// <summary>
-    /// Gets the qualified name.
-    /// </summary>
-    /// <param name="names">The names.</param>
-    /// <returns>The qualified name.</returns>
-    /// <exception cref="InvalidOperationException"><paramref name="names"/> is invalid.</exception>
-    public static NameSyntax GetQualifiedName(IEnumerable<IdentifierNameSyntax> names)
+    public static NameSyntax GetQualifiedName(string? fullName)
     {
-        var enumerator = names.GetEnumerator();
-        _ = enumerator.MoveNext();
+        return GetNames(fullName).ToQualifiedName();
 
-        NameSyntax? name = enumerator.Current;
-        while (enumerator.MoveNext() && name is not null && enumerator.Current is not null)
+        static IEnumerable<IdentifierNameSyntax> GetNames(string? fullName)
         {
-            name = SyntaxFactory.QualifiedName(name, enumerator.Current);
-        }
+            return fullName switch
+            {
+                not null => fullName.Split('.').Select(RemoveAttribute).Select(SyntaxFactory.IdentifierName),
+                _ => [],
+            };
 
-        enumerator.Dispose();
-        return name ?? throw new InvalidOperationException();
-    }
-
-    /// <summary>
-    /// Gets the names from the full name.
-    /// </summary>
-    /// <param name="fullName">The full name.</param>
-    /// <returns>The names.</returns>
-    public static IEnumerable<IdentifierNameSyntax> GetNames(string? fullName)
-    {
-        return fullName switch
-        {
-            null => [],
-            { } f => f.Split('.').Select(RemoveAttribute).Select(SyntaxFactory.IdentifierName),
-        };
-
-        static string RemoveAttribute(string name)
-        {
-            return name.EndsWith(nameof(Attribute), StringComparison.Ordinal)
-                ? name[..^nameof(Attribute).Length]
-                : name;
+            static string RemoveAttribute(string name)
+            {
+                return name.EndsWith(nameof(Attribute), StringComparison.Ordinal)
+                    ? name[..^nameof(Attribute).Length]
+                    : name;
+            }
         }
     }
 }

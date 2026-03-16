@@ -144,7 +144,7 @@ internal readonly record struct PropertyToGenerate(
     /// <param name="builders">The potential builders.</param>
     /// <param name="builder">The builder if found.</param>
     /// <returns><see langword="true"/> if a builder is found; otherwise <see langword="false"/>.</returns>
-    public bool TryGetBuilder(IEnumerable<BuilderToGenerate> builders, out BuilderToGenerate builder)
+    public bool TryGetBuilder(ICollection<BuilderToGenerate> builders, out BuilderToGenerate builder)
     {
         return (this.Type is Microsoft.CodeAnalysis.CSharp.Syntax.QualifiedNameSyntax { Right: Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax { TypeArgumentList.Arguments: [var typeArgument] } } && TryGetBuilderCore(builders, typeArgument, out builder))
             || TryGetBuilderCore(builders, this.Type, out builder);

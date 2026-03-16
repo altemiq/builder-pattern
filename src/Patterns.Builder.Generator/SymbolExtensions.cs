@@ -18,18 +18,6 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 internal static class SymbolExtensions
 {
     /// <content>
-    /// The <see cref="MemberDeclarationSyntax"/> extensions.
-    /// </content>
-    /// <param name="syntax">The syntax.</param>
-    extension(MemberDeclarationSyntax syntax)
-    {
-        /// <summary>
-        /// Gets a value indicating whether this instance is partial.
-        /// </summary>
-        public bool IsPartial => syntax.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword));
-    }
-
-    /// <content>
     /// The <see cref="Type"/> extensions.
     /// </content>
     /// <param name="type">The type.</param>
@@ -60,10 +48,7 @@ internal static class SymbolExtensions
 
             return QualifiedName(
                 NameHelpers.GetQualifiedName(type.Namespace),
-                GenericName(
-                        Identifier(name))
-                    .WithTypeArgumentList(
-                        TypeArgumentList(parameterList)));
+                GenericName(Identifier(name), TypeArgumentList(parameterList)));
         }
     }
 
@@ -78,9 +63,7 @@ internal static class SymbolExtensions
         /// </summary>
         public bool IsPrimitiveOrNullablePrimitive => type switch
         {
-            {
-                SpecialType:
-                    SpecialType.System_Boolean or
+            { SpecialType: SpecialType.System_Boolean or
                     SpecialType.System_Char or
                     SpecialType.System_SByte or
                     SpecialType.System_Byte or
@@ -95,9 +78,9 @@ internal static class SymbolExtensions
             }
 
                 => true,
+            { SpecialType: SpecialType.System_Enum } or { TypeKind: TypeKind.Enum } => true,
             INamedTypeSymbol { NullableAnnotation: NullableAnnotation.Annotated, IsValueType: true, TypeArguments: [var typeArgument] } => typeArgument.IsPrimitiveOrNullablePrimitive,
             INamedTypeSymbol { SpecialType: SpecialType.System_Nullable_T, TypeArguments: [var typeArgument] } => typeArgument.IsPrimitiveOrNullablePrimitive,
-            { SpecialType: SpecialType.System_Enum } or { TypeKind: TypeKind.Enum } => true,
             _ => false,
         };
 
@@ -149,54 +132,51 @@ internal static class SymbolExtensions
                 var @namespace = GetNamespace(type.ContainingNamespace);
 
                 // is this generic?
-                if (type.IsGenericType)
-                {
-                    // add the values on the end
-                    var genericName = GenericName(type.Name)
-                        .WithTypeArgumentList(TypeArgumentList(GetTypeArguments(type)));
-
-                    return QualifiedName(@namespace, genericName);
-
-                    static SeparatedSyntaxList<TypeSyntax> GetTypeArguments(INamedTypeSymbol type)
-                    {
-                        var typeArguments = type.TypeArguments.GetEnumerator();
-
-                        if (!typeArguments.MoveNext())
-                        {
-                            throw new InvalidOperationException();
-                        }
-
-                        var first = typeArguments.Current;
-
-                        if (!typeArguments.MoveNext())
-                        {
-                            return SingletonSeparatedList(first.ToType());
-                        }
-
-                        var arguments = new List<TypeSyntax> { first.ToType(), typeArguments.Current.ToType(), };
-
-                        while (typeArguments.MoveNext())
-                        {
-                            arguments.Add(typeArguments.Current.ToType());
-                        }
-
-                        return SeparatedList(arguments);
-                    }
-                }
-
-                return QualifiedName(@namespace, IdentifierName(type.Name));
+                return type.IsGenericType
+                    ? QualifiedName(@namespace, GenericName(type.Name).WithTypeArgumentList(TypeArgumentList(GetTypeArguments(type))))
+                    : QualifiedName(@namespace, IdentifierName(type.Name));
 
                 static NameSyntax GetNamespace(INamespaceSymbol? namespaceSymbol)
                 {
-                    var sections = new List<string>();
+                    return GetNamespaceParts(namespaceSymbol)
+                        .Reverse()
+                        .Select(IdentifierName)
+                        .ToQualifiedName();
 
-                    while (namespaceSymbol is { Name: { Length: > 0 } name })
+                    static IEnumerable<string> GetNamespaceParts(INamespaceSymbol? namespaceSymbol)
                     {
-                        sections.Insert(0, name);
-                        namespaceSymbol = namespaceSymbol.ContainingNamespace;
+                        while (namespaceSymbol is { Name: { Length: > 0 } name })
+                        {
+                            yield return name;
+                            namespaceSymbol = namespaceSymbol.ContainingNamespace;
+                        }
+                    }
+                }
+
+                static SeparatedSyntaxList<TypeSyntax> GetTypeArguments(INamedTypeSymbol type)
+                {
+                    var typeArguments = type.TypeArguments.GetEnumerator();
+
+                    if (!typeArguments.MoveNext())
+                    {
+                        throw new InvalidOperationException();
                     }
 
-                    return NameHelpers.GetQualifiedName(sections.Select(IdentifierName));
+                    var first = typeArguments.Current;
+
+                    if (!typeArguments.MoveNext())
+                    {
+                        return SingletonSeparatedList(first.ToType());
+                    }
+
+                    var arguments = new List<TypeSyntax> { first.ToType(), typeArguments.Current.ToType(), };
+
+                    while (typeArguments.MoveNext())
+                    {
+                        arguments.Add(typeArguments.Current.ToType());
+                    }
+
+                    return SeparatedList(arguments);
                 }
             }
         }
