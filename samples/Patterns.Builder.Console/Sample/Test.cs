@@ -10,5 +10,7 @@
         public int Quality { get; set; } = 5;
         public int? Rating { get; set; }
         public System.DateTime Ordered { get; set; }
+        [System.ComponentModel.DefaultValue(System.IO.FileAccess.ReadWrite)]
+        public System.IO.FileAccess FileAccess { get; set; }
     }
 }

@@ -16,7 +16,12 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 /// </content>
 internal static partial class InternalGenerator
 {
-    private static IEnumerable<MemberDeclarationSyntax> CreateCollectionMembers(string className, string builderName, PropertyToGenerate property, System.Collections.Immutable.ImmutableArray<BuilderToGenerate> builders, bool useCollectionExpressions)
+    private static IEnumerable<MemberDeclarationSyntax> CreateCollectionMembers(
+        string className,
+        string builderName,
+        PropertyToGenerate property,
+        ICollection<BuilderToGenerate> builders,
+        bool useCollectionExpressions)
     {
         var suffix = property.Name.Singularize();
         var singularFieldName = property.FieldName.Singularize();
@@ -44,69 +49,68 @@ internal static partial class InternalGenerator
 
             yield return FieldDeclaration(
                 VariableDeclaration(
-                    QualifiedName(
-                        QualifiedName(
-                            QualifiedName(
-                                IdentifierName(nameof(System)),
-                                IdentifierName(nameof(System.Collections))),
-                            IdentifierName(nameof(System.Collections.Generic))),
-                        GenericName(
-                            Identifier(nameof(ICollection<>)))
-                            .WithTypeArgumentList(
-                                TypeArgumentList(SingletonSeparatedList(typeArgument)))))
-                        .WithVariables(
-                            SingletonSeparatedList(
-                                VariableDeclarator(
+                        typeof(ICollection<>).ToTypeSyntax([typeArgument]))
+                    .WithVariables(
+                        SingletonSeparatedList(
+                            VariableDeclarator(
                                     Identifier(property.FieldName))
                                 .WithInitializer(
                                     EqualsValueClause(
                                         collectionCreation)))));
 
             yield return MethodDeclaration(
-                IdentifierName(builderName),
-                Identifier($"Add{suffix}"))
+                    IdentifierName(builderName),
+                    Identifier($"Add{suffix}"))
                 .WithModifiers(
-                TokenList(
-                    Token(property.Accessibility)))
+                    TokenList(
+                        Token(property.Accessibility)))
                 .WithLeadingTrivia(
-                Trivia(
-                    DocumentationComment(
-                        XmlSummaryElement(
-                            XmlText("Adds a value to the "),
-                            XmlSeeElement(
-                                QualifiedCref(
-                                    IdentifierName(className),
-                                    NameMemberCref(
-                                        IdentifierName(property.Name)))),
-                            XmlText(" collection.")),
-                        XmlText(XmlTextNewLine(Constants.NewLine)),
-                        XmlParamElement(
-                            singularFieldName,
-                            XmlText($"The {singularFieldName.Humanize(LetterCasing.LowerCase)} to add.")),
-                        XmlText(XmlTextNewLine(Constants.NewLine)),
-                        BuilderReturn,
-                        XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
+                    Trivia(
+                        DocumentationComment(
+                            XmlSummaryElement(
+                                XmlText("Adds a value to the "),
+                                XmlSeeElement(
+                                    QualifiedCref(
+                                        IdentifierName(className),
+                                        NameMemberCref(
+                                            IdentifierName(property.Name)))),
+                                XmlText(" collection.")),
+                            XmlText(XmlTextNewLine(Constants.NewLine)),
+                            XmlParamElement(
+                                singularFieldName,
+                                XmlText($"The {singularFieldName.Humanize(LetterCasing.LowerCase)} to add.")),
+                            XmlText(XmlTextNewLine(Constants.NewLine)),
+                            BuilderReturn,
+                            XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
                 .WithParameterList(
-                ParameterList(GetParameter(typeArgument, singularFieldName)))
+                    ParameterList(GetParameter(typeArgument, singularFieldName)))
                 .WithBody(
-                Block(
-                    ExpressionStatement(
-                        InvocationExpression(
-                            MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression,
-                                MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    ThisExpression(),
-                                    IdentifierName(property.FieldName)),
-                                IdentifierName(nameof(ICollection<>.Add))))
-                        .WithArgumentList(
-                            ArgumentList(
-                                GetArguments(singularFieldName)))),
-                    ReturnStatement(
-                        ThisExpression())));
+                    Block(
+                        ExpressionStatement(
+                            InvocationExpression(
+                                    MemberAccessExpression(
+                                        SyntaxKind.SimpleMemberAccessExpression,
+                                        MemberAccessExpression(
+                                            SyntaxKind.SimpleMemberAccessExpression,
+                                            ThisExpression(),
+                                            IdentifierName(property.FieldName)),
+                                        IdentifierName(nameof(ICollection<>.Add))))
+                                .WithArgumentList(
+                                    ArgumentList(
+                                        GetArguments(singularFieldName)))),
+                        ReturnStatement(
+                            ThisExpression())));
         }
 
-        static IEnumerable<MemberDeclarationSyntax> GetBuilderMethods(string className, string builderName, PropertyToGenerate property, string suffix, string singularFieldName, TypeSyntax typeArgument, BuilderToGenerate builder, bool useCollectionExpressions)
+        static IEnumerable<MemberDeclarationSyntax> GetBuilderMethods(
+            string className,
+            string builderName,
+            PropertyToGenerate property,
+            string suffix,
+            string singularFieldName,
+            TypeSyntax typeArgument,
+            BuilderToGenerate builder,
+            bool useCollectionExpressions)
         {
             ExpressionSyntax collectionCreation = useCollectionExpressions
                 ? CollectionExpression()
@@ -116,159 +120,159 @@ internal static partial class InternalGenerator
 
             yield return FieldDeclaration(
                 VariableDeclaration(
-                    typeof(ICollection<>).ToTypeSyntax([funcType]))
-                .WithVariables(
-                    SingletonSeparatedList(
-                        VariableDeclarator(
-                            Identifier(property.FieldName))
-                        .WithInitializer(
-                            EqualsValueClause(
-                                collectionCreation)))));
+                        typeof(ICollection<>).ToTypeSyntax([funcType]))
+                    .WithVariables(
+                        SingletonSeparatedList(
+                            VariableDeclarator(
+                                    Identifier(property.FieldName))
+                                .WithInitializer(
+                                    EqualsValueClause(
+                                        collectionCreation)))));
 
             yield return MethodDeclaration(
-                IdentifierName(builderName),
-                Identifier($"Add{suffix}"))
+                    IdentifierName(builderName),
+                    Identifier($"Add{suffix}"))
                 .WithModifiers(
-                TokenList(
-                    Token(property.Accessibility)))
+                    TokenList(
+                        Token(property.Accessibility)))
                 .WithLeadingTrivia(
-                Trivia(
-                    DocumentationComment(
-                        XmlSummaryElement(
-                            XmlText("Adds a value to the "),
-                            XmlSeeElement(
-                                QualifiedCref(
-                                    IdentifierName(className),
-                                    NameMemberCref(
-                                        IdentifierName(property.Name)))),
-                            XmlText(" collection.")),
-                        XmlText(XmlTextNewLine(Constants.NewLine)),
-                        XmlParamElement(
-                            singularFieldName,
-                            XmlText($"The {singularFieldName.Humanize(LetterCasing.LowerCase)} to add.")),
-                        XmlText(XmlTextNewLine(Constants.NewLine)),
-                        BuilderReturn,
-                        XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
+                    Trivia(
+                        DocumentationComment(
+                            XmlSummaryElement(
+                                XmlText("Adds a value to the "),
+                                XmlSeeElement(
+                                    QualifiedCref(
+                                        IdentifierName(className),
+                                        NameMemberCref(
+                                            IdentifierName(property.Name)))),
+                                XmlText(" collection.")),
+                            XmlText(XmlTextNewLine(Constants.NewLine)),
+                            XmlParamElement(
+                                singularFieldName,
+                                XmlText($"The {singularFieldName.Humanize(LetterCasing.LowerCase)} to add.")),
+                            XmlText(XmlTextNewLine(Constants.NewLine)),
+                            BuilderReturn,
+                            XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
                 .WithParameterList(
-                ParameterList(GetParameter(typeArgument, singularFieldName)))
+                    ParameterList(GetParameter(typeArgument, singularFieldName)))
                 .WithBody(
-                Block(
-                    ExpressionStatement(
-                        InvocationExpression(
-                            MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression,
-                                MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    ThisExpression(),
-                                    IdentifierName(property.FieldName)),
-                                IdentifierName(nameof(ICollection<>.Add))))
-                        .WithArgumentList(
-                            ArgumentList(
-                                SingletonSeparatedList(
-                                    Argument(
-                                        ParenthesizedLambdaExpression()
-                                        .WithExpressionBody(
-                                            IdentifierName(singularFieldName))))))),
-                    ReturnStatement(
+                    Block(
+                        ExpressionStatement(
+                            InvocationExpression(
+                                    MemberAccessExpression(
+                                        SyntaxKind.SimpleMemberAccessExpression,
+                                        MemberAccessExpression(
+                                            SyntaxKind.SimpleMemberAccessExpression,
+                                            ThisExpression(),
+                                            IdentifierName(property.FieldName)),
+                                        IdentifierName(nameof(ICollection<>.Add))))
+                                .WithArgumentList(
+                                    ArgumentList(
+                                        SingletonSeparatedList(
+                                            Argument(
+                                                ParenthesizedLambdaExpression()
+                                                    .WithExpressionBody(
+                                                        IdentifierName(singularFieldName))))))),
+                        ReturnStatement(
                             ThisExpression())));
 
             yield return MethodDeclaration(
-                IdentifierName(builderName),
-                Identifier($"Add{suffix}"))
+                    IdentifierName(builderName),
+                    Identifier($"Add{suffix}"))
                 .WithModifiers(
-                TokenList(
-                    Token(property.Accessibility)))
+                    TokenList(
+                        Token(property.Accessibility)))
                 .WithParameterList(
-                ParameterList(
-                    GetParameter(funcType, singularFieldName)))
+                    ParameterList(
+                        GetParameter(funcType, singularFieldName)))
                 .WithLeadingTrivia(
-                Trivia(
-                    DocumentationComment(
-                        XmlSummaryElement(
-                            XmlText("Adds a value to the "),
-                            XmlSeeElement(
-                                QualifiedCref(
-                                    IdentifierName(className),
-                                    NameMemberCref(
-                                        IdentifierName(property.Name)))),
-                            XmlText(" collection via a factory.")),
-                        XmlText(XmlTextNewLine(Constants.NewLine)),
-                        XmlParamElement(
-                            property.FieldName,
-                            XmlText($"The {property.FieldName.Humanize(LetterCasing.LowerCase)} factory.")),
-                        XmlText(XmlTextNewLine(Constants.NewLine)),
-                        BuilderReturn,
-                        XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
+                    Trivia(
+                        DocumentationComment(
+                            XmlSummaryElement(
+                                XmlText("Adds a value to the "),
+                                XmlSeeElement(
+                                    QualifiedCref(
+                                        IdentifierName(className),
+                                        NameMemberCref(
+                                            IdentifierName(property.Name)))),
+                                XmlText(" collection via a factory.")),
+                            XmlText(XmlTextNewLine(Constants.NewLine)),
+                            XmlParamElement(
+                                property.FieldName,
+                                XmlText($"The {property.FieldName.Humanize(LetterCasing.LowerCase)} factory.")),
+                            XmlText(XmlTextNewLine(Constants.NewLine)),
+                            BuilderReturn,
+                            XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
                 .WithBody(
-                Block(
-                    ExpressionStatement(
-                        InvocationExpression(
-                            MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression,
-                                MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    ThisExpression(),
-                                    IdentifierName(property.FieldName)),
-                                IdentifierName(nameof(ICollection<>.Add))))
-                        .WithArgumentList(
-                            ArgumentList(
-                                SingletonSeparatedList(
-                                    Argument(
-                                        IdentifierName(singularFieldName)))))),
-                    ReturnStatement(
-                        ThisExpression())));
+                    Block(
+                        ExpressionStatement(
+                            InvocationExpression(
+                                    MemberAccessExpression(
+                                        SyntaxKind.SimpleMemberAccessExpression,
+                                        MemberAccessExpression(
+                                            SyntaxKind.SimpleMemberAccessExpression,
+                                            ThisExpression(),
+                                            IdentifierName(property.FieldName)),
+                                        IdentifierName(nameof(ICollection<>.Add))))
+                                .WithArgumentList(
+                                    ArgumentList(
+                                        SingletonSeparatedList(
+                                            Argument(
+                                                IdentifierName(singularFieldName)))))),
+                        ReturnStatement(
+                            ThisExpression())));
 
             yield return MethodDeclaration(
-                IdentifierName(builderName),
-                Identifier($"Add{suffix}"))
+                    IdentifierName(builderName),
+                    Identifier($"Add{suffix}"))
                 .WithModifiers(
-                TokenList(
-                    Token(property.Accessibility)))
+                    TokenList(
+                        Token(property.Accessibility)))
                 .WithParameterList(
-                ParameterList(
-                    SingletonSeparatedList(
-                        Parameter(
-                            Identifier(ActionParameterName))
-                        .WithType(
-                            typeof(Action<>).ToTypeSyntax([NameHelpers.GetQualifiedName(builder.FullQualifiedBuilderName)])))))
+                    ParameterList(
+                        SingletonSeparatedList(
+                            Parameter(
+                                    Identifier(ActionParameterName))
+                                .WithType(
+                                    typeof(Action<>).ToTypeSyntax([NameHelpers.GetQualifiedName(builder.FullQualifiedBuilderName)])))))
                 .WithLeadingTrivia(
-                Trivia(
-                    DocumentationComment(
-                        XmlSummaryElement(
-                            XmlText("Adds a value to the "),
-                            XmlSeeElement(
-                                QualifiedCref(
-                                    IdentifierName(className),
-                                    NameMemberCref(
-                                        IdentifierName(property.Name)))),
-                            XmlText(" collection via a builder.")),
-                        XmlText(XmlTextNewLine(Constants.NewLine)),
-                        XmlParamElement(
-                            property.FieldName,
-                            XmlText($"The {property.FieldName.Humanize(LetterCasing.LowerCase)} action.")),
-                        XmlText(XmlTextNewLine(Constants.NewLine)),
-                        BuilderReturn,
-                        XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
+                    Trivia(
+                        DocumentationComment(
+                            XmlSummaryElement(
+                                XmlText("Adds a value to the "),
+                                XmlSeeElement(
+                                    QualifiedCref(
+                                        IdentifierName(className),
+                                        NameMemberCref(
+                                            IdentifierName(property.Name)))),
+                                XmlText(" collection via a builder.")),
+                            XmlText(XmlTextNewLine(Constants.NewLine)),
+                            XmlParamElement(
+                                property.FieldName,
+                                XmlText($"The {property.FieldName.Humanize(LetterCasing.LowerCase)} action.")),
+                            XmlText(XmlTextNewLine(Constants.NewLine)),
+                            BuilderReturn,
+                            XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
                 .WithBody(
-                Block(
-                    ExpressionStatement(
-                        InvocationExpression(
-                            MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression,
-                                MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    ThisExpression(),
-                                    IdentifierName(property.FieldName)),
-                                IdentifierName(nameof(ICollection<>.Add))))
-                        .WithArgumentList(
-                            ArgumentList(
-                                SingletonSeparatedList(
-                                    Argument(
-                                        ParenthesizedLambdaExpression()
-                                        .WithBlock(
-                                        GetBuilderActionBlock(builder))))))),
-                    ReturnStatement(
-                        ThisExpression())));
+                    Block(
+                        ExpressionStatement(
+                            InvocationExpression(
+                                    MemberAccessExpression(
+                                        SyntaxKind.SimpleMemberAccessExpression,
+                                        MemberAccessExpression(
+                                            SyntaxKind.SimpleMemberAccessExpression,
+                                            ThisExpression(),
+                                            IdentifierName(property.FieldName)),
+                                        IdentifierName(nameof(ICollection<>.Add))))
+                                .WithArgumentList(
+                                    ArgumentList(
+                                        SingletonSeparatedList(
+                                            Argument(
+                                                ParenthesizedLambdaExpression()
+                                                    .WithBlock(
+                                                        GetBuilderActionBlock(builder))))))),
+                        ReturnStatement(
+                            ThisExpression())));
         }
     }
 
@@ -302,18 +306,18 @@ internal static partial class InternalGenerator
                     SingletonList<StatementSyntax>(
                         ExpressionStatement(
                             InvocationExpression(
-                                MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
                                     MemberAccessExpression(
                                         SyntaxKind.SimpleMemberAccessExpression,
-                                        IdentifierName(Value),
-                                        IdentifierName(property.Name)),
-                                    IdentifierName(nameof(ICollection<>.Add))))
-                            .WithArgumentList(
-                                ArgumentList(
-                                    SingletonSeparatedList(
-                                        Argument(
-                                            expression))))))));
+                                        MemberAccessExpression(
+                                            SyntaxKind.SimpleMemberAccessExpression,
+                                            IdentifierName(Value),
+                                            IdentifierName(property.Name)),
+                                        IdentifierName(nameof(ICollection<>.Add))))
+                                .WithArgumentList(
+                                    ArgumentList(
+                                        SingletonSeparatedList(
+                                            Argument(
+                                                expression))))))));
         }
     }
 }

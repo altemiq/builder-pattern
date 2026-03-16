@@ -29,54 +29,54 @@ internal static partial class InternalGenerator
         }
 
         yield return FieldDeclaration(
-            VariableDeclaration(property.Type)
-            .WithVariables(
-                SingletonSeparatedList(
-                    variableDeclarator)))
+                VariableDeclaration(property.Type)
+                    .WithVariables(
+                        SingletonSeparatedList(
+                            variableDeclarator)))
             .WithModifiers(
-            TokenList(
-                Token(SyntaxKind.PrivateKeyword)));
+                TokenList(
+                    Token(SyntaxKind.PrivateKeyword)));
 
         yield return MethodDeclaration(
-            IdentifierName(builderName),
-            Identifier($"With{property.Name}"))
+                IdentifierName(builderName),
+                Identifier($"With{property.Name}"))
             .WithModifiers(
-            TokenList(
-                Token(property.Accessibility)))
+                TokenList(
+                    Token(property.Accessibility)))
             .WithLeadingTrivia(
-            Trivia(
-                DocumentationComment(
-                    XmlSummaryElement(
-                        XmlText("Sets the "),
-                        XmlSeeElement(
-                            QualifiedCref(
-                                IdentifierName(className),
-                                NameMemberCref(
-                                    IdentifierName(property.Name)))),
-                        XmlText(" value.")),
-                    XmlText(XmlTextNewLine(Constants.NewLine)),
-                    XmlParamElement(
-                        property.FieldName,
-                        XmlText($"The {property.FieldName.Humanize(LetterCasing.LowerCase)} value.")),
-                    XmlText(XmlTextNewLine(Constants.NewLine)),
-                    BuilderReturn,
-                    XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
+                Trivia(
+                    DocumentationComment(
+                        XmlSummaryElement(
+                            XmlText("Sets the "),
+                            XmlSeeElement(
+                                QualifiedCref(
+                                    IdentifierName(className),
+                                    NameMemberCref(
+                                        IdentifierName(property.Name)))),
+                            XmlText(" value.")),
+                        XmlText(XmlTextNewLine(Constants.NewLine)),
+                        XmlParamElement(
+                            property.FieldName,
+                            XmlText($"The {property.FieldName.Humanize(LetterCasing.LowerCase)} value.")),
+                        XmlText(XmlTextNewLine(Constants.NewLine)),
+                        BuilderReturn,
+                        XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
             .WithParameterList(
-            ParameterList(
-                SingletonSeparatedList(
-                    Parameter(Identifier(property.FieldName))
-                    .WithType(property.Type))))
+                ParameterList(
+                    SingletonSeparatedList(
+                        Parameter(Identifier(property.FieldName))
+                            .WithType(property.Type))))
             .WithBody(
-            Block(
-                ExpressionStatement(
-                    AssignmentExpression(
-                        SyntaxKind.SimpleAssignmentExpression,
-                        MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            ThisExpression(),
-                            IdentifierName(property.FieldName)),
-                        IdentifierName(property.FieldName))),
-                ReturnStatement(
-                    ThisExpression())));
+                Block(
+                    ExpressionStatement(
+                        AssignmentExpression(
+                            SyntaxKind.SimpleAssignmentExpression,
+                            MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                ThisExpression(),
+                                IdentifierName(property.FieldName)),
+                            IdentifierName(property.FieldName))),
+                    ReturnStatement(
+                        ThisExpression())));
     }
 }

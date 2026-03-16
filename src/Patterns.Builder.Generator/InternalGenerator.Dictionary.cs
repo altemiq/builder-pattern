@@ -20,81 +20,63 @@ internal static partial class InternalGenerator
     {
         var suffix = property.Name.Singularize();
         var typeArguments = GetTypeArguments(property.Type);
-        var genericCollectionNamespace = QualifiedName(
-            QualifiedName(
-                IdentifierName(nameof(System)),
-                IdentifierName(nameof(System.Collections))),
-            IdentifierName(nameof(System.Collections.Generic)));
-        var keyValuePairName = QualifiedName(
-            genericCollectionNamespace,
-            GenericName(
-                Identifier(nameof(KeyValuePair<,>)))
-            .WithTypeArgumentList(
-                TypeArgumentList(
-                    typeArguments)));
+        var keyValuePairName = typeof(KeyValuePair<,>).ToTypeSyntax(typeArguments);
 
         yield return FieldDeclaration(
             VariableDeclaration(
-                QualifiedName(
-                    genericCollectionNamespace,
-                    GenericName(
-                        Identifier(nameof(ICollection<>)))
-                    .WithTypeArgumentList(
-                        TypeArgumentList(
-                            SingletonSeparatedList<TypeSyntax>(
-                                keyValuePairName)))))
-            .WithVariables(
-                SingletonSeparatedList(
-                    VariableDeclarator(
-                        Identifier(property.FieldName))
-                    .WithInitializer(
-                        EqualsValueClause(
-                            CollectionExpression())))));
+                    typeof(ICollection<>).ToTypeSyntax([keyValuePairName]))
+                .WithVariables(
+                    SingletonSeparatedList(
+                        VariableDeclarator(
+                                Identifier(property.FieldName))
+                            .WithInitializer(
+                                EqualsValueClause(
+                                    CollectionExpression())))));
 
         yield return MethodDeclaration(
                 IdentifierName(builderName),
                 Identifier($"Add{suffix}"))
             .WithModifiers(
-            TokenList(
-                Token(property.Accessibility)))
+                TokenList(
+                    Token(property.Accessibility)))
             .WithLeadingTrivia(
-            Trivia(
-                DocumentationComment(
-                    XmlSummaryElement(
-                        XmlText("Adds a key/value pair to the "),
-                        XmlSeeElement(
-                            QualifiedCref(
-                                IdentifierName(className),
-                                NameMemberCref(
-                                    IdentifierName(property.Name)))),
-                        XmlText(" dictionary.")),
-                    XmlText(XmlTextNewLine(Constants.NewLine)),
-                    XmlParamElement(
-                        Key,
-                        XmlText($"The {property.FieldName.Humanize(LetterCasing.LowerCase)} key.")),
-                    XmlText(XmlTextNewLine(Constants.NewLine)),
-                    XmlParamElement(
-                        Value,
-                        XmlText($"The {property.FieldName.Humanize(LetterCasing.LowerCase)} value.")),
-                    XmlText(XmlTextNewLine(Constants.NewLine)),
-                    BuilderReturn,
-                    XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
+                Trivia(
+                    DocumentationComment(
+                        XmlSummaryElement(
+                            XmlText("Adds a key/value pair to the "),
+                            XmlSeeElement(
+                                QualifiedCref(
+                                    IdentifierName(className),
+                                    NameMemberCref(
+                                        IdentifierName(property.Name)))),
+                            XmlText(" dictionary.")),
+                        XmlText(XmlTextNewLine(Constants.NewLine)),
+                        XmlParamElement(
+                            Key,
+                            XmlText($"The {property.FieldName.Humanize(LetterCasing.LowerCase)} key.")),
+                        XmlText(XmlTextNewLine(Constants.NewLine)),
+                        XmlParamElement(
+                            Value,
+                            XmlText($"The {property.FieldName.Humanize(LetterCasing.LowerCase)} value.")),
+                        XmlText(XmlTextNewLine(Constants.NewLine)),
+                        BuilderReturn,
+                        XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
             .WithParameterList(
                 ParameterList(GetParameters(typeArguments)))
             .WithBody(
                 Block(
                     ExpressionStatement(
                         InvocationExpression(
-                            MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression,
                                 MemberAccessExpression(
                                     SyntaxKind.SimpleMemberAccessExpression,
-                                    ThisExpression(),
-                                    IdentifierName(property.FieldName)),
-                                IdentifierName(nameof(ICollection<>.Add))))
-                        .WithArgumentList(
-                            ArgumentList(
-                                GetArguments(typeArguments, keyValuePairName)))),
+                                    MemberAccessExpression(
+                                        SyntaxKind.SimpleMemberAccessExpression,
+                                        ThisExpression(),
+                                        IdentifierName(property.FieldName)),
+                                    IdentifierName(nameof(ICollection<>.Add))))
+                            .WithArgumentList(
+                                ArgumentList(
+                                    GetArguments(typeArguments, keyValuePairName)))),
                     ReturnStatement(
                         ThisExpression())));
 
@@ -103,7 +85,7 @@ internal static partial class InternalGenerator
             if (types is [var keyType, var valueType])
             {
                 // return as key/value pair
-                return SeparatedList<ParameterSyntax>(
+                return SeparatedList(
                 [
                     Parameter(Identifier(Key)).WithType(keyType),
                     Parameter(Identifier(Value)).WithType(valueType),
@@ -121,62 +103,60 @@ internal static partial class InternalGenerator
                 return SingletonSeparatedList(
                     Argument(
                         ObjectCreationExpression(keyValuePair)
-                        .WithArgumentList(
-                        ArgumentList(
-                            SeparatedList<ArgumentSyntax>(
-                            [
-                                Argument(IdentifierName(Key)),
-                                Argument(IdentifierName(Value)),
-                            ])))));
+                            .WithArgumentList(
+                                ArgumentList(
+                                    SeparatedList(
+                                    [
+                                        Argument(IdentifierName(Key)),
+                                        Argument(IdentifierName(Value)),
+                                    ])))));
             }
 
             throw new NotSupportedException();
         }
     }
 
-    private static IEnumerable<ForEachStatementSyntax> GetDictionaryAssignment(IEnumerable<PropertyToGenerate> properties)
-    {
-        foreach (var p in properties.Where(p => p.Metadata.HasFlag(PropertyMetadata.ReadOnly) && p.Metadata.HasFlag(PropertyMetadata.Collection) && p.Metadata.HasFlag(PropertyMetadata.Dictionary)))
-        {
-            yield return ForEachStatement(
-                IdentifierName(
-                    Identifier(
-                        TriviaList(),
-                        SyntaxKind.VarKeyword,
-                        "var",
-                        "var",
-                        TriviaList())),
-                Identifier(KeyValuePair),
-                MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    ThisExpression(),
-                    IdentifierName(p.FieldName)),
-                Block(
-                    SingletonList<StatementSyntax>(
-                        ExpressionStatement(
-                            InvocationExpression(
-                                MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    MemberAccessExpression(
-                                        SyntaxKind.SimpleMemberAccessExpression,
-                                        IdentifierName(Value),
-                                        IdentifierName(p.Name)),
-                                    IdentifierName(nameof(IDictionary<,>.Add))))
-                            .WithArgumentList(
-                                ArgumentList(
-                                    SeparatedList<ArgumentSyntax>(
-                                    [
-                                            Argument(
-                                                MemberAccessExpression(
-                                                    SyntaxKind.SimpleMemberAccessExpression,
-                                                    IdentifierName(KeyValuePair),
-                                                    IdentifierName(nameof(KeyValuePair<,>.Key)))),
-                                        Argument(
+    private static IEnumerable<ForEachStatementSyntax> GetDictionaryAssignment(IEnumerable<PropertyToGenerate> properties) =>
+        properties
+            .Where(p => p.Metadata.HasFlag(PropertyMetadata.ReadOnly) && p.Metadata.HasFlag(PropertyMetadata.Collection) && p.Metadata.HasFlag(PropertyMetadata.Dictionary))
+            .Select(p =>
+                ForEachStatement(
+                    IdentifierName(
+                        Identifier(
+                            TriviaList(),
+                            SyntaxKind.VarKeyword,
+                            "var",
+                            "var",
+                            TriviaList())),
+                    Identifier(KeyValuePair),
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        ThisExpression(),
+                        IdentifierName(p.FieldName)),
+                    Block(
+                        SingletonList<StatementSyntax>(
+                            ExpressionStatement(
+                                InvocationExpression(
+                                        MemberAccessExpression(
+                                            SyntaxKind.SimpleMemberAccessExpression,
                                             MemberAccessExpression(
                                                 SyntaxKind.SimpleMemberAccessExpression,
-                                                IdentifierName(KeyValuePair),
-                                                IdentifierName(nameof(KeyValuePair<,>.Value)))),
-                                    ])))))));
-        }
-    }
+                                                IdentifierName(Value),
+                                                IdentifierName(p.Name)),
+                                            IdentifierName(nameof(IDictionary<,>.Add))))
+                                    .WithArgumentList(
+                                        ArgumentList(
+                                            SeparatedList<ArgumentSyntax>(
+                                            [
+                                                Argument(
+                                                    MemberAccessExpression(
+                                                        SyntaxKind.SimpleMemberAccessExpression,
+                                                        IdentifierName(KeyValuePair),
+                                                        IdentifierName(nameof(KeyValuePair<,>.Key)))),
+                                                Argument(
+                                                    MemberAccessExpression(
+                                                        SyntaxKind.SimpleMemberAccessExpression,
+                                                        IdentifierName(KeyValuePair),
+                                                        IdentifierName(nameof(KeyValuePair<,>.Value)))),
+                                            ]))))))));
 }

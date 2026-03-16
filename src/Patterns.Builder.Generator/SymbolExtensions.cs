@@ -78,9 +78,26 @@ internal static class SymbolExtensions
         /// </summary>
         public bool IsPrimitiveOrNullablePrimitive => type switch
         {
-            { SpecialType: SpecialType.System_Boolean or SpecialType.System_Char or SpecialType.System_SByte or SpecialType.System_Byte or SpecialType.System_Int16 or SpecialType.System_UInt16 or SpecialType.System_Int32 or SpecialType.System_UInt32 or SpecialType.System_Int64 or SpecialType.System_UInt64 or SpecialType.System_Single or SpecialType.System_Double } => true,
-            INamedTypeSymbol { NullableAnnotation: NullableAnnotation.Annotated, IsValueType: true } namedTypeSymbol => namedTypeSymbol.TypeArguments[0].IsPrimitiveOrNullablePrimitive,
-            INamedTypeSymbol { SpecialType: SpecialType.System_Nullable_T } namedTypeSymbol => namedTypeSymbol.TypeArguments[0].IsPrimitiveOrNullablePrimitive,
+            {
+                SpecialType:
+                    SpecialType.System_Boolean or
+                    SpecialType.System_Char or
+                    SpecialType.System_SByte or
+                    SpecialType.System_Byte or
+                    SpecialType.System_Int16 or
+                    SpecialType.System_UInt16 or
+                    SpecialType.System_Int32 or
+                    SpecialType.System_UInt32 or
+                    SpecialType.System_Int64 or
+                    SpecialType.System_UInt64 or
+                    SpecialType.System_Single or
+                    SpecialType.System_Double,
+            }
+
+                => true,
+            INamedTypeSymbol { NullableAnnotation: NullableAnnotation.Annotated, IsValueType: true, TypeArguments: [var typeArgument] } => typeArgument.IsPrimitiveOrNullablePrimitive,
+            INamedTypeSymbol { SpecialType: SpecialType.System_Nullable_T, TypeArguments: [var typeArgument] } => typeArgument.IsPrimitiveOrNullablePrimitive,
+            { SpecialType: SpecialType.System_Enum } or { TypeKind: TypeKind.Enum } => true,
             _ => false,
         };
 
@@ -118,8 +135,8 @@ internal static class SymbolExtensions
                 { SpecialType: SpecialType.System_String } => PredefinedType(Token(SyntaxKind.StringKeyword)),
 
                 // Nullable
-                INamedTypeSymbol { NullableAnnotation: NullableAnnotation.Annotated } namedTypeSymbol => NullableType(ToType(namedTypeSymbol.TypeArguments[0])),
-                INamedTypeSymbol { SpecialType: SpecialType.System_Nullable_T } namedTypeSymbol => NullableType(ToType(namedTypeSymbol.TypeArguments[0])),
+                INamedTypeSymbol { NullableAnnotation: NullableAnnotation.Annotated, TypeArguments: [var typeArgument] } => NullableType(typeArgument.ToType()),
+                INamedTypeSymbol { SpecialType: SpecialType.System_Nullable_T, TypeArguments: [var typeArgument] } => NullableType(typeArgument.ToType()),
 
                 // Non-special
                 INamedTypeSymbol namedTypeSymbol => GetFullName(namedTypeSymbol),
@@ -156,11 +173,7 @@ internal static class SymbolExtensions
                             return SingletonSeparatedList(first.ToType());
                         }
 
-                        var arguments = new List<TypeSyntax>
-                        {
-                            first.ToType(),
-                            typeArguments.Current.ToType(),
-                        };
+                        var arguments = new List<TypeSyntax> { first.ToType(), typeArguments.Current.ToType(), };
 
                         while (typeArguments.MoveNext())
                         {

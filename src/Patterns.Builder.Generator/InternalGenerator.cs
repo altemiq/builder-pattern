@@ -358,48 +358,80 @@ internal static partial class InternalGenerator
                         IdentifierName(BuilderVariableName),
                         IdentifierName(BuildMethod)))));
 
-    private static ExpressionSyntax CreateExpressionFromTypedConstant(TypedConstant constant) =>
-        constant switch
+    private static ExpressionSyntax CreateExpressionFromTypedConstant(TypedConstant constant)
+    {
+        return constant switch
         {
             { IsNull: true } => LiteralExpression(SyntaxKind.NullLiteralExpression),
-            { Kind: TypedConstantKind.Primitive } => LiteralExpression(
-                GetLiteralExpressionKind(constant.Value),
-                GetLiteralSyntaxToken(constant.Value)),
-            { Kind: TypedConstantKind.Enum } => MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                IdentifierName(constant.Type?.Name ?? string.Empty),
-                IdentifierName(constant.Value?.ToString() ?? string.Empty)),
+            { Kind: TypedConstantKind.Primitive } => GetLiteralExpression(constant),
+            { Kind: TypedConstantKind.Enum } => CreateEnumExpression(constant),
             _ => throw new NotSupportedException($"Unsupported TypedConstantKind: {constant.Kind}"),
         };
 
-    private static SyntaxKind GetLiteralExpressionKind(object? value) =>
-        value switch
+        static ExpressionSyntax CreateEnumExpression(TypedConstant constant)
         {
-            int or double or float => SyntaxKind.NumericLiteralExpression,
-            true => SyntaxKind.TrueLiteralExpression,
-            false => SyntaxKind.FalseLiteralExpression,
-            char => SyntaxKind.CharacterLiteralExpression,
-            null => SyntaxKind.NullLiteralExpression,
-            _ => SyntaxKind.StringLiteralExpression,
-        };
+            if (constant.Type is not INamedTypeSymbol { TypeKind: TypeKind.Enum } enumType)
+            {
+                throw new InvalidOperationException($"{nameof(TypedConstant)} is not an enum type.");
+            }
 
-    private static SyntaxToken GetLiteralSyntaxToken(object? value) =>
-        value switch
+            // Try to find the enum member with the matching constant value
+            var matchingField = enumType
+                .GetMembers()
+                .OfType<IFieldSymbol>()
+                .FirstOrDefault(f => f.HasConstantValue && Equals(f.ConstantValue, constant.Value));
+
+            if (matchingField != null)
+            {
+                // MyEnum.MemberName
+                return MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    NameHelpers.GetQualifiedName(enumType.ToString()),
+                    IdentifierName(matchingField.Name));
+            }
+
+            // If no matching field found, fallback to casting the numeric value
+            return CastExpression(
+                NameHelpers.GetQualifiedName(enumType.ToString()),
+                GetLiteralExpression(constant));
+        }
+
+        static LiteralExpressionSyntax GetLiteralExpression(TypedConstant constant)
         {
-            sbyte i => Literal(i),
-            byte i => Literal(i),
-            short i => Literal(i),
-            ushort i => Literal(i),
-            int i => Literal(i),
-            uint i => Literal(i),
-            long i => Literal(i),
-            ulong i => Literal(i),
-            float f => Literal(f),
-            double f => Literal(f),
-            decimal f => Literal(f),
-            char c => Literal(c),
-            string s => Literal(s),
-            not null => Literal(value.ToString()),
-            _ => Token(SyntaxKind.NullKeyword),
-        };
+            return LiteralExpression(
+                GetLiteralExpressionKind(constant.Value),
+                GetLiteralExpressionToken(constant.Value));
+
+            static SyntaxKind GetLiteralExpressionKind(object? value) =>
+                value switch
+                {
+                    int or double or float => SyntaxKind.NumericLiteralExpression,
+                    true => SyntaxKind.TrueLiteralExpression,
+                    false => SyntaxKind.FalseLiteralExpression,
+                    char => SyntaxKind.CharacterLiteralExpression,
+                    null => SyntaxKind.NullLiteralExpression,
+                    _ => SyntaxKind.StringLiteralExpression,
+                };
+
+            static SyntaxToken GetLiteralExpressionToken(object? value) =>
+                value switch
+                {
+                    sbyte i => Literal(i),
+                    byte i => Literal(i),
+                    short i => Literal(i),
+                    ushort i => Literal(i),
+                    int i => Literal(i),
+                    uint i => Literal(i),
+                    long i => Literal(i),
+                    ulong i => Literal(i),
+                    float f => Literal(f),
+                    double f => Literal(f),
+                    decimal f => Literal(f),
+                    char c => Literal(c),
+                    string s => Literal(s),
+                    not null => Literal(value.ToString()),
+                    _ => Token(SyntaxKind.NullKeyword),
+                };
+        }
+    }
 }
