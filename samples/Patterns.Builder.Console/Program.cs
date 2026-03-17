@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-
 // get sample directory
 var sampleDirectory = GetSampleDirectory();
 
@@ -9,9 +8,9 @@ var sampleDirectory = GetSampleDirectory();
 var inputCompilation = CSharpCompilation.Create("compilation",
     Directory.EnumerateFiles(sampleDirectory, "*.cs").Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file))),
     [
-        MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+        .. ReferenceAssemblyLocator.GetNetCoreReferences("net10.0"),
         MetadataReference.CreateFromFile(typeof(Altemiq.Patterns.Builder.GenerateBuilderAttribute).Assembly.Location)],
-    new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+    new(OutputKind.DynamicallyLinkedLibrary));
 
 // Create the driver that will control the generation, passing in our generator
 GeneratorDriver driver = CSharpGeneratorDriver.Create(new Altemiq.Patterns.Builder.Generator.BuilderGenerator());

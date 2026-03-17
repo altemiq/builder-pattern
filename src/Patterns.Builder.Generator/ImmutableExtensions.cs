@@ -24,7 +24,16 @@ internal static class ImmutableExtensions
     /// <returns>The list with value semantics.</returns>
     public static IImmutableList<T> WithValueSemantics<T>(this IImmutableList<T> list) => new ImmutableListWithValueSemantics<T>(list);
 
-    private readonly struct ImmutableListWithValueSemantics<T>(IImmutableList<T> list) : IImmutableList<T>, IEquatable<IImmutableList<T>?>
+    /// <summary>
+    /// Forces value semantics for the immutable list.
+    /// </summary>
+    /// <typeparam name="T">The type in the list.</typeparam>
+    /// <param name="list">The list to wrap.</param>
+    /// <param name="comparer">The comparer.</param>
+    /// <returns>The list with value semantics.</returns>
+    public static IImmutableList<T> WithValueSemantics<T>(this IImmutableList<T> list, IEqualityComparer<T> comparer) => new ImmutableListWithValueSemantics<T>(list, comparer);
+
+    private readonly struct ImmutableListWithValueSemantics<T>(IImmutableList<T> list, IEqualityComparer<T>? comparer = default) : IImmutableList<T>, IEquatable<IImmutableList<T>?>
     {
         public int Count => list.Count;
 
@@ -64,13 +73,29 @@ internal static class ImmutableExtensions
 
         public override bool Equals(object? obj) => obj is IImmutableList<T> immutableList && this.Equals(immutableList);
 
-        public bool Equals(IImmutableList<T>? other) => this.SequenceEqual(other ?? ImmutableList<T>.Empty);
+        public bool Equals(IImmutableList<T>? other) => this.SequenceEqual(other ?? ImmutableList<T>.Empty, comparer);
 
         public override int GetHashCode()
         {
             unchecked
             {
-                return this.Aggregate(19, (h, i) => (h * 19) + i?.GetHashCode() ?? 0);
+                var copiedComparer = comparer;
+                return this.Aggregate(19, (h, i) => (h * 19) + GetHashCodeCore(i, copiedComparer));
+
+                static int GetHashCodeCore(T? value, IEqualityComparer<T>? comparer)
+                {
+                    if (value is null)
+                    {
+                        return 0;
+                    }
+
+                    if (comparer is { } c)
+                    {
+                        return c.GetHashCode(value);
+                    }
+
+                    return value.GetHashCode();
+                }
             }
         }
     }

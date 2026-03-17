@@ -6,6 +6,7 @@
 
 namespace Altemiq.Patterns.Builder.Generator;
 
+using System.Collections.Immutable;
 using Humanizer;
 
 /// <summary>
@@ -17,13 +18,15 @@ using Humanizer;
 /// <param name="Metadata">The property metadata.</param>
 /// <param name="Accessibility">The accessibility.</param>
 /// <param name="DefaultValue">The optional default value.</param>
+/// <param name="Constructors">The optional constructors.</param>
 internal readonly record struct PropertyToGenerate(
     string Name,
     string FieldName,
     Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax Type,
     PropertyMetadata Metadata,
     Microsoft.CodeAnalysis.CSharp.SyntaxKind Accessibility,
-    TypedConstant? DefaultValue)
+    TypedConstant? DefaultValue,
+    IImmutableList<IMethodSymbol> Constructors)
 {
     /// <summary>
     /// Creates a new instance of the <see cref="PropertyToGenerate"/> struct.
@@ -69,7 +72,36 @@ internal readonly record struct PropertyToGenerate(
 
         var accessibility = GetAccessibility(propertySymbol, metadata);
         var defaultValue = GetDefaultValue(propertySymbol);
-        return new(name, fieldName, typeSyntax, metadata, accessibility, defaultValue);
+        if (propertySymbol.Type is not INamedTypeSymbol { InstanceConstructors: { Length: not 0 } instanceConstructors })
+        {
+            return new(name, fieldName, typeSyntax, metadata, accessibility, defaultValue, []);
+        }
+
+        IImmutableList<IMethodSymbol> constructors = [..instanceConstructors.Where(static method =>
+            {
+                if (method.Parameters.IsEmpty)
+                {
+                    return false;
+                }
+
+                // exclude copy constructors
+                if (method.Parameters is [var single]
+                    && SymbolEqualityComparer.Default.Equals(single.Type, method.ReceiverType))
+                {
+                    return false;
+                }
+
+                // exclude unsafe methods
+                return !method.Parameters.Any(p => p.Type is IPointerTypeSymbol);
+            })
+            .OrderBy(static method => method.GetDocumentationCommentId(), StringComparer.Ordinal),
+        ];
+
+        constructors = constructors.Count is 0
+            ? ImmutableArray<IMethodSymbol>.Empty
+            : constructors.WithValueSemantics(SymbolEqualityComparer.IncludeNullability);
+
+        return new(name, fieldName, typeSyntax, metadata, accessibility, defaultValue, constructors);
 
         static Microsoft.CodeAnalysis.CSharp.SyntaxKind GetAccessibility(IPropertySymbol propertySymbol, PropertyMetadata metadata)
         {
@@ -119,23 +151,29 @@ internal readonly record struct PropertyToGenerate(
                                                     && StringComparer.Ordinal.Equals(this.Type.ToFullString(), other.Type.ToFullString())
                                                     && this.Metadata == other.Metadata
                                                     && this.Accessibility == other.Accessibility
-                                                    && this.DefaultValue.GetValueOrDefault().Equals(other.DefaultValue.GetValueOrDefault());
+                                                    && this.DefaultValue.GetValueOrDefault().Equals(other.DefaultValue.GetValueOrDefault())
+                                                    && this.Constructors.Equals(other.Constructors);
 
     /// <inheritdoc/>
     public override int GetHashCode()
     {
-        var hash = 0;
-        hash += StringComparer.Ordinal.GetHashCode(this.Name);
-        hash += 19 + StringComparer.Ordinal.GetHashCode(this.Name);
-        hash += 38 + StringComparer.Ordinal.GetHashCode(this.Type.ToFullString());
-        hash += 57 + this.Metadata.GetHashCode();
-        hash += 76 + this.Accessibility.GetHashCode();
+        const int multiplier = 19;
+        var hash = UpdateHashCode(multiplier, StringComparer.Ordinal.GetHashCode(this.Name));
+        hash = UpdateHashCode(hash, StringComparer.Ordinal.GetHashCode(this.FieldName));
+        hash = UpdateHashCode(hash, StringComparer.Ordinal.GetHashCode(this.Type.ToFullString()));
+        hash = UpdateHashCode(hash, this.Metadata.GetHashCode());
+        hash = UpdateHashCode(hash, this.Accessibility.GetHashCode());
         if (this.DefaultValue is { } defaultValue)
         {
-            hash += 95 + defaultValue.GetHashCode();
+            hash = UpdateHashCode(hash, defaultValue.GetHashCode());
         }
 
-        return hash;
+        return UpdateHashCode(hash, this.Constructors.GetHashCode());
+
+        static int UpdateHashCode(int hash, int code)
+        {
+            return (hash * multiplier) + code;
+        }
     }
 
     /// <summary>

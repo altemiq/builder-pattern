@@ -18,10 +18,10 @@ public class BuilderGeneratorTests
                     [Altemiq.Patterns.Builder.GenerateBuilder]
                     public partial class Test
                     {
-                        public int PrimitiveValue { get; set; }
+                        public System.DateTime PrimitiveValue { get; set; }
                     }
                 }
-                """)
+                """),
             ],
             [
                 MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
@@ -128,9 +128,9 @@ public class BuilderGeneratorTests
                                 }
                             }
                         }
-                        """))
-                }
-            }
+                        """)),
+                },
+            },
         };
 
         await context.RunAsync(TestContext.Current?.Execution.CancellationToken ?? CancellationToken.None);
@@ -192,13 +192,252 @@ public class BuilderGeneratorTests
                                         this.dateTimeValue = new System.Lazy<System.DateTime>(() => dateTimeValue);
                                         return this;
                                     }
-
+    
                                     ///<summary>Sets the <see cref = "Test.DateTimeValue"/> value via a factory.</summary>
                                     ///<param name = "dateTimeValue">The date time value factory.</param>
                                     ///<returns>The builder for chaining.</returns>
                                     public TestBuilder WithDateTimeValue(System.Func<System.DateTime> dateTimeValue)
                                     {
                                         this.dateTimeValue = new System.Lazy<System.DateTime>(dateTimeValue);
+                                        return this;
+                                    }
+                        
+                                    ///<summary>Sets the <see cref = "Test.DateTimeValue"/> value via a constructor.</summary>
+                                    ///<param name = "date">The date part.</param>
+                                    ///<param name = "time">The time part.</param>
+                                    ///<returns>The builder for chaining.</returns>
+                                    public TestBuilder WithDateTimeValue(System.DateOnly date, System.TimeOnly time)
+                                    {
+                                        this.dateTimeValue = new System.Lazy<System.DateTime>(() => new System.DateTime(date, time));
+                                        return this;
+                                    }
+                        
+                                    ///<summary>Sets the <see cref = "Test.DateTimeValue"/> value via a constructor.</summary>
+                                    ///<param name = "date">The date part.</param>
+                                    ///<param name = "time">The time part.</param>
+                                    ///<param name = "kind">One of the enumeration values that indicates whether <paramref name = "date"/> and <paramref name = "time"/> specify a local time, Coordinated Universal Time (UTC), or neither.</param>
+                                    ///<returns>The builder for chaining.</returns>
+                                    public TestBuilder WithDateTimeValue(System.DateOnly date, System.TimeOnly time, System.DateTimeKind kind)
+                                    {
+                                        this.dateTimeValue = new System.Lazy<System.DateTime>(() => new System.DateTime(date, time, kind));
+                                        return this;
+                                    }
+ 
+                                    ///<summary>Sets the <see cref = "Test.DateTimeValue"/> value via a constructor.</summary>
+                                    ///<param name = "year">The year (1 through 9999).</param>
+                                    ///<param name = "month">The month (1 through 12).</param>
+                                    ///<param name = "day">The day (1 through the number of days in <paramref name = "month"/>).</param>
+                                    ///<returns>The builder for chaining.</returns>
+                                    public TestBuilder WithDateTimeValue(int year, int month, int day)
+                                    {
+                                        this.dateTimeValue = new System.Lazy<System.DateTime>(() => new System.DateTime(year, month, day));
+                                        return this;
+                                    }
+                        
+                                    ///<summary>Sets the <see cref = "Test.DateTimeValue"/> value via a constructor.</summary>
+                                    ///<param name = "year">The year (1 through the number of years in <paramref name = "calendar"/>).</param>
+                                    ///<param name = "month">The month (1 through the number of months in <paramref name = "calendar"/>).</param>
+                                    ///<param name = "day">The day (1 through the number of days in <paramref name = "month"/>).</param>
+                                    ///<param name = "calendar">The calendar that is used to interpret <paramref name = "year"/>, <paramref name = "month"/>, and <paramref name = "day"/>.</param>
+                                    ///<returns>The builder for chaining.</returns>
+                                    public TestBuilder WithDateTimeValue(int year, int month, int day, System.Globalization.Calendar calendar)
+                                    {
+                                        this.dateTimeValue = new System.Lazy<System.DateTime>(() => new System.DateTime(year, month, day, calendar));
+                                        return this;
+                                    }
+                        
+                                    ///<summary>Sets the <see cref = "Test.DateTimeValue"/> value via a constructor.</summary>
+                                    ///<param name = "year">The year (1 through 9999).</param>
+                                    ///<param name = "month">The month (1 through 12).</param>
+                                    ///<param name = "day">The day (1 through the number of days in <paramref name = "month"/>).</param>
+                                    ///<param name = "hour">The hours (0 through 23).</param>
+                                    ///<param name = "minute">The minutes (0 through 59).</param>
+                                    ///<param name = "second">The seconds (0 through 59).</param>
+                                    ///<returns>The builder for chaining.</returns>
+                                    public TestBuilder WithDateTimeValue(int year, int month, int day, int hour, int minute, int second)
+                                    {
+                                        this.dateTimeValue = new System.Lazy<System.DateTime>(() => new System.DateTime(year, month, day, hour, minute, second));
+                                        return this;
+                                    }
+                        
+                                    ///<summary>Sets the <see cref = "Test.DateTimeValue"/> value via a constructor.</summary>
+                                    ///<param name = "year">The year (1 through 9999).</param>
+                                    ///<param name = "month">The month (1 through 12).</param>
+                                    ///<param name = "day">The day (1 through the number of days in <paramref name = "month"/>).</param>
+                                    ///<param name = "hour">The hours (0 through 23).</param>
+                                    ///<param name = "minute">The minutes (0 through 59).</param>
+                                    ///<param name = "second">The seconds (0 through 59).</param>
+                                    ///<param name = "kind">One of the enumeration values that indicates whether <paramref name = "year"/>, <paramref name = "month"/>, <paramref name = "day"/>, <paramref name = "hour"/>, <paramref name = "minute"/> and <paramref name = "second"/> specify a local time, Coordinated Universal Time (UTC), or neither.</param>
+                                    ///<returns>The builder for chaining.</returns>
+                                    public TestBuilder WithDateTimeValue(int year, int month, int day, int hour, int minute, int second, System.DateTimeKind kind)
+                                    {
+                                        this.dateTimeValue = new System.Lazy<System.DateTime>(() => new System.DateTime(year, month, day, hour, minute, second, kind));
+                                        return this;
+                                    }
+                        
+                                    ///<summary>Sets the <see cref = "Test.DateTimeValue"/> value via a constructor.</summary>
+                                    ///<param name = "year">The year (1 through the number of years in <paramref name = "calendar"/>).</param>
+                                    ///<param name = "month">The month (1 through the number of months in <paramref name = "calendar"/>).</param>
+                                    ///<param name = "day">The day (1 through the number of days in <paramref name = "month"/>).</param>
+                                    ///<param name = "hour">The hours (0 through 23).</param>
+                                    ///<param name = "minute">The minutes (0 through 59).</param>
+                                    ///<param name = "second">The seconds (0 through 59).</param>
+                                    ///<param name = "calendar">The calendar that is used to interpret <paramref name = "year"/>, <paramref name = "month"/>, and <paramref name = "day"/>.</param>
+                                    ///<returns>The builder for chaining.</returns>
+                                    public TestBuilder WithDateTimeValue(int year, int month, int day, int hour, int minute, int second, System.Globalization.Calendar calendar)
+                                    {
+                                        this.dateTimeValue = new System.Lazy<System.DateTime>(() => new System.DateTime(year, month, day, hour, minute, second, calendar));
+                                        return this;
+                                    }
+                        
+                                    ///<summary>Sets the <see cref = "Test.DateTimeValue"/> value via a constructor.</summary>
+                                    ///<param name = "year">The year (1 through 9999).</param>
+                                    ///<param name = "month">The month (1 through 12).</param>
+                                    ///<param name = "day">The day (1 through the number of days in <paramref name = "month"/>).</param>
+                                    ///<param name = "hour">The hours (0 through 23).</param>
+                                    ///<param name = "minute">The minutes (0 through 59).</param>
+                                    ///<param name = "second">The seconds (0 through 59).</param>
+                                    ///<param name = "millisecond">The milliseconds (0 through 999).</param>
+                                    ///<returns>The builder for chaining.</returns>
+                                    public TestBuilder WithDateTimeValue(int year, int month, int day, int hour, int minute, int second, int millisecond)
+                                    {
+                                        this.dateTimeValue = new System.Lazy<System.DateTime>(() => new System.DateTime(year, month, day, hour, minute, second, millisecond));
+                                        return this;
+                                    }
+                        
+                                    ///<summary>Sets the <see cref = "Test.DateTimeValue"/> value via a constructor.</summary>
+                                    ///<param name = "year">The year (1 through 9999).</param>
+                                    ///<param name = "month">The month (1 through 12).</param>
+                                    ///<param name = "day">The day (1 through the number of days in <paramref name = "month"/>).</param>
+                                    ///<param name = "hour">The hours (0 through 23).</param>
+                                    ///<param name = "minute">The minutes (0 through 59).</param>
+                                    ///<param name = "second">The seconds (0 through 59).</param>
+                                    ///<param name = "millisecond">The milliseconds (0 through 999).</param>
+                                    ///<param name = "kind">One of the enumeration values that indicates whether <paramref name = "year"/>, <paramref name = "month"/>, <paramref name = "day"/>, <paramref name = "hour"/>, <paramref name = "minute"/>, <paramref name = "second"/>, and <paramref name = "millisecond"/> specify a local time, Coordinated Universal Time (UTC), or neither.</param>
+                                    ///<returns>The builder for chaining.</returns>
+                                    public TestBuilder WithDateTimeValue(int year, int month, int day, int hour, int minute, int second, int millisecond, System.DateTimeKind kind)
+                                    {
+                                        this.dateTimeValue = new System.Lazy<System.DateTime>(() => new System.DateTime(year, month, day, hour, minute, second, millisecond, kind));
+                                        return this;
+                                    }
+                        
+                                    ///<summary>Sets the <see cref = "Test.DateTimeValue"/> value via a constructor.</summary>
+                                    ///<param name = "year">The year (1 through the number of years in <paramref name = "calendar"/>).</param>
+                                    ///<param name = "month">The month (1 through the number of months in <paramref name = "calendar"/>).</param>
+                                    ///<param name = "day">The day (1 through the number of days in <paramref name = "month"/>).</param>
+                                    ///<param name = "hour">The hours (0 through 23).</param>
+                                    ///<param name = "minute">The minutes (0 through 59).</param>
+                                    ///<param name = "second">The seconds (0 through 59).</param>
+                                    ///<param name = "millisecond">The milliseconds (0 through 999).</param>
+                                    ///<param name = "calendar">The calendar that is used to interpret <paramref name = "year"/>, <paramref name = "month"/>, and <paramref name = "day"/>.</param>
+                                    ///<returns>The builder for chaining.</returns>
+                                    public TestBuilder WithDateTimeValue(int year, int month, int day, int hour, int minute, int second, int millisecond, System.Globalization.Calendar calendar)
+                                    {
+                                        this.dateTimeValue = new System.Lazy<System.DateTime>(() => new System.DateTime(year, month, day, hour, minute, second, millisecond, calendar));
+                                        return this;
+                                    }
+                        
+                                    ///<summary>Sets the <see cref = "Test.DateTimeValue"/> value via a constructor.</summary>
+                                    ///<param name = "year">The year (1 through the number of years in <paramref name = "calendar"/>).</param>
+                                    ///<param name = "month">The month (1 through the number of months in <paramref name = "calendar"/>).</param>
+                                    ///<param name = "day">The day (1 through the number of days in <paramref name = "month"/>).</param>
+                                    ///<param name = "hour">The hours (0 through 23).</param>
+                                    ///<param name = "minute">The minutes (0 through 59).</param>
+                                    ///<param name = "second">The seconds (0 through 59).</param>
+                                    ///<param name = "millisecond">The milliseconds (0 through 999).</param>
+                                    ///<param name = "calendar">The calendar that is used to interpret <paramref name = "year"/>, <paramref name = "month"/>, and <paramref name = "day"/>.</param>
+                                    ///<param name = "kind">One of the enumeration values that indicates whether <paramref name = "year"/>, <paramref name = "month"/>, <paramref name = "day"/>, <paramref name = "hour"/>, <paramref name = "minute"/>, <paramref name = "second"/>, and <paramref name = "millisecond"/> specify a local time, Coordinated Universal Time (UTC), or neither.</param>
+                                    ///<returns>The builder for chaining.</returns>
+                                    public TestBuilder WithDateTimeValue(int year, int month, int day, int hour, int minute, int second, int millisecond, System.Globalization.Calendar calendar, System.DateTimeKind kind)
+                                    {
+                                        this.dateTimeValue = new System.Lazy<System.DateTime>(() => new System.DateTime(year, month, day, hour, minute, second, millisecond, calendar, kind));
+                                        return this;
+                                    }
+                        
+                                    ///<summary>Sets the <see cref = "Test.DateTimeValue"/> value via a constructor.</summary>
+                                    ///<param name = "year">The year (1 through 9999).</param>
+                                    ///<param name = "month">The month (1 through 12).</param>
+                                    ///<param name = "day">The day (1 through the number of days in <paramref name = "month"/>).</param>
+                                    ///<param name = "hour">The hours (0 through 23).</param>
+                                    ///<param name = "minute">The minutes (0 through 59).</param>
+                                    ///<param name = "second">The seconds (0 through 59).</param>
+                                    ///<param name = "millisecond">The milliseconds (0 through 999).</param>
+                                    ///<param name = "microsecond">The microseconds (0 through 999).</param>
+                                    ///<returns>The builder for chaining.</returns>
+                                    public TestBuilder WithDateTimeValue(int year, int month, int day, int hour, int minute, int second, int millisecond, int microsecond)
+                                    {
+                                        this.dateTimeValue = new System.Lazy<System.DateTime>(() => new System.DateTime(year, month, day, hour, minute, second, millisecond, microsecond));
+                                        return this;
+                                    }
+
+                                    ///<summary>Sets the <see cref = "Test.DateTimeValue"/> value via a constructor.</summary>
+                                    ///<param name = "year">The year (1 through 9999).</param>
+                                    ///<param name = "month">The month (1 through 12).</param>
+                                    ///<param name = "day">The day (1 through the number of days in <paramref name = "month"/>).</param>
+                                    ///<param name = "hour">The hours (0 through 23).</param>
+                                    ///<param name = "minute">The minutes (0 through 59).</param>
+                                    ///<param name = "second">The seconds (0 through 59).</param>
+                                    ///<param name = "millisecond">The milliseconds (0 through 999).</param>
+                                    ///<param name = "microsecond">The microseconds (0 through 999).</param>
+                                    ///<param name = "kind">One of the enumeration values that indicates whether <paramref name = "year"/>, <paramref name = "month"/>, <paramref name = "day"/>, <paramref name = "hour"/>, <paramref name = "minute"/>, <paramref name = "second"/>, and <paramref name = "millisecond"/> specify a local time, Coordinated Universal Time (UTC), or neither.</param>
+                                    ///<returns>The builder for chaining.</returns>
+                                    public TestBuilder WithDateTimeValue(int year, int month, int day, int hour, int minute, int second, int millisecond, int microsecond, System.DateTimeKind kind)
+                                    {
+                                        this.dateTimeValue = new System.Lazy<System.DateTime>(() => new System.DateTime(year, month, day, hour, minute, second, millisecond, microsecond, kind));
+                                        return this;
+                                    }
+
+                                    ///<summary>Sets the <see cref = "Test.DateTimeValue"/> value via a constructor.</summary>
+                                    ///<param name = "year">The year (1 through the number of years in <paramref name = "calendar"/>).</param>
+                                    ///<param name = "month">The month (1 through the number of months in <paramref name = "calendar"/>).</param>
+                                    ///<param name = "day">The day (1 through the number of days in <paramref name = "month"/>).</param>
+                                    ///<param name = "hour">The hours (0 through 23).</param>
+                                    ///<param name = "minute">The minutes (0 through 59).</param>
+                                    ///<param name = "second">The seconds (0 through 59).</param>
+                                    ///<param name = "millisecond">The milliseconds (0 through 999).</param>
+                                    ///<param name = "microsecond">The microseconds (0 through 999).</param>
+                                    ///<param name = "calendar">The calendar that is used to interpret <paramref name = "year"/>, <paramref name = "month"/>, and <paramref name = "day"/>.</param>
+                                    ///<returns>The builder for chaining.</returns>
+                                    public TestBuilder WithDateTimeValue(int year, int month, int day, int hour, int minute, int second, int millisecond, int microsecond, System.Globalization.Calendar calendar)
+                                    {
+                                        this.dateTimeValue = new System.Lazy<System.DateTime>(() => new System.DateTime(year, month, day, hour, minute, second, millisecond, microsecond, calendar));
+                                        return this;
+                                    }
+                        
+                                    ///<summary>Sets the <see cref = "Test.DateTimeValue"/> value via a constructor.</summary>
+                                    ///<param name = "year">The year (1 through the number of years in <paramref name = "calendar"/>).</param>
+                                    ///<param name = "month">The month (1 through the number of months in <paramref name = "calendar"/>).</param>
+                                    ///<param name = "day">The day (1 through the number of days in <paramref name = "month"/>).</param>
+                                    ///<param name = "hour">The hours (0 through 23).</param>
+                                    ///<param name = "minute">The minutes (0 through 59).</param>
+                                    ///<param name = "second">The seconds (0 through 59).</param>
+                                    ///<param name = "millisecond">The milliseconds (0 through 999).</param>
+                                    ///<param name = "microsecond">The microseconds (0 through 999).</param>
+                                    ///<param name = "calendar">The calendar that is used to interpret <paramref name = "year"/>, <paramref name = "month"/>, and <paramref name = "day"/>.</param>
+                                    ///<param name = "kind">One of the enumeration values that indicates whether <paramref name = "year"/>, <paramref name = "month"/>, <paramref name = "day"/>, <paramref name = "hour"/>, <paramref name = "minute"/>, <paramref name = "second"/>, and <paramref name = "millisecond"/> specify a local time, Coordinated Universal Time (UTC), or neither.</param>
+                                    ///<returns>The builder for chaining.</returns>
+                                    public TestBuilder WithDateTimeValue(int year, int month, int day, int hour, int minute, int second, int millisecond, int microsecond, System.Globalization.Calendar calendar, System.DateTimeKind kind)
+                                    {
+                                        this.dateTimeValue = new System.Lazy<System.DateTime>(() => new System.DateTime(year, month, day, hour, minute, second, millisecond, microsecond, calendar, kind));
+                                        return this;
+                                    }
+                        
+                                    ///<summary>Sets the <see cref = "Test.DateTimeValue"/> value via a constructor.</summary>
+                                    ///<param name = "ticks">A date and time expressed in the number of 100-nanosecond intervals that have elapsed since January 1, 0001 at 00:00:00.000 in the Gregorian calendar.</param>
+                                    ///<returns>The builder for chaining.</returns>
+                                    public TestBuilder WithDateTimeValue(long ticks)
+                                    {
+                                        this.dateTimeValue = new System.Lazy<System.DateTime>(() => new System.DateTime(ticks));
+                                        return this;
+                                    }
+                        
+                                    ///<summary>Sets the <see cref = "Test.DateTimeValue"/> value via a constructor.</summary>
+                                    ///<param name = "ticks">A date and time expressed in the number of 100-nanosecond intervals that have elapsed since January 1, 0001 at 00:00:00.000 in the Gregorian calendar.</param>
+                                    ///<param name = "kind">One of the enumeration values that indicates whether <paramref name = "ticks"/> specifies a local time, Coordinated Universal Time (UTC), or neither.</param>
+                                    ///<returns>The builder for chaining.</returns>
+                                    public TestBuilder WithDateTimeValue(long ticks, System.DateTimeKind kind)
+                                    {
+                                        this.dateTimeValue = new System.Lazy<System.DateTime>(() => new System.DateTime(ticks, kind));
                                         return this;
                                     }
                     
@@ -215,9 +454,9 @@ public class BuilderGeneratorTests
                                 }
                             }
                         }
-                        """))
-                }
-            }
+                        """)),
+                },
+            },
         };
 
         await context.RunAsync(TestContext.Current?.Execution.CancellationToken ?? CancellationToken.None);

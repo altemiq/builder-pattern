@@ -142,6 +142,76 @@ internal static partial class InternalGenerator
                     ReturnStatement(
                         ThisExpression())));
 
+        // do any constructors
+        foreach (var constructor in property.Constructors)
+        {
+            // if this has any ref-like parameters we can't use it
+            if (constructor.Parameters.Any(p => p.Type.IsRefLikeType))
+            {
+                continue;
+            }
+
+            var documentation = new List<XmlNodeSyntax>
+            {
+                XmlSummaryElement(
+                    XmlText("Sets the "),
+                    XmlSeeElement(
+                        QualifiedCref(
+                            IdentifierName(className),
+                            NameMemberCref(
+                                IdentifierName(property.Name)))),
+                    XmlText(" value via a constructor.")),
+                XmlText(XmlTextNewLine(Constants.NewLine)),
+            };
+
+            if (constructor.GetDocumentationCommentXml() is { Length: > 0 } xml
+                && System.Xml.Linq.XDocument.Parse(xml) is { Root: { } root })
+            {
+                // get the parameters
+                foreach (var node in root.Nodes().OfType<System.Xml.Linq.XElement>().Where(n => n.Name.LocalName is "param"))
+                {
+                    documentation.Add(node.ToXmlNode());
+                    documentation.Add(XmlText(XmlTextNewLine(Constants.NewLine)));
+                }
+            }
+
+            documentation.Add(BuilderReturn);
+            documentation.Add(XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)));
+
+            yield return MethodDeclaration(
+                    IdentifierName(builderName),
+                    Identifier($"With{property.Name}"))
+                .WithModifiers(
+                    TokenList(
+                        Token(property.Accessibility)))
+                .WithLeadingTrivia(
+                    Trivia(
+                        DocumentationComment(
+                            [.. documentation])))
+                .WithParameterList(
+                    constructor.GetParameterList())
+                .WithBody(
+                    Block(
+                        ExpressionStatement(
+                            AssignmentExpression(
+                                SyntaxKind.SimpleAssignmentExpression,
+                                MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    ThisExpression(),
+                                    IdentifierName(property.FieldName)),
+                                ObjectCreationExpression(
+                                        lazyType)
+                                    .WithArgumentList(
+                                        ArgumentList(
+                                            SingletonSeparatedList(
+                                                Argument(
+                                                    ParenthesizedLambdaExpression()
+                                                        .WithExpressionBody(
+                                                            constructor.GetObjectCreation()))))))),
+                        ReturnStatement(
+                            ThisExpression())));
+        }
+
         // check to see if the type of class is one of the builders
         if (property.TryGetBuilder(builders, out var builder))
         {

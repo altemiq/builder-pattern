@@ -122,11 +122,29 @@ internal static class SymbolExtensions
                 INamedTypeSymbol { NullableAnnotation: NullableAnnotation.Annotated, TypeArguments: [var typeArgument] } => NullableType(typeArgument.ToType()),
                 INamedTypeSymbol { SpecialType: SpecialType.System_Nullable_T, TypeArguments: [var typeArgument] } => NullableType(typeArgument.ToType()),
 
+                // Array
+                IArrayTypeSymbol { NullableAnnotation: NullableAnnotation.Annotated, ElementType: { } elementType } => NullableType(GetArray(elementType)),
+                IArrayTypeSymbol { ElementType: { } elementType } => GetArray(elementType),
+
+                // Pointers
+                IPointerTypeSymbol { PointedAtType: { } pointedAtType } => PointerType(pointedAtType.ToType()),
+
                 // Non-special
                 INamedTypeSymbol namedTypeSymbol => GetFullName(namedTypeSymbol),
 
+                // anything not supported yet
                 _ => throw new NotSupportedException(),
             };
+
+            static ArrayTypeSyntax GetArray(ITypeSymbol elementType)
+            {
+                return ArrayType(elementType.ToType())
+                    .WithRankSpecifiers(
+                        SingletonList(
+                            ArrayRankSpecifier(
+                                SingletonSeparatedList<ExpressionSyntax>(
+                                    OmittedArraySizeExpression()))));
+            }
 
             static TypeSyntax GetFullName(INamedTypeSymbol type)
             {
@@ -202,5 +220,46 @@ internal static class SymbolExtensions
             { AllInterfaces: { } interfaces } when interfaces.Select(i => i.OriginalDefinition).Contains(dictionaryType, SymbolEqualityComparer.Default) => true,
             _ => false,
         };
+    }
+
+    extension(IMethodSymbol methodSymbol)
+    {
+        /// <summary>
+        /// Gets the parameter list.
+        /// </summary>
+        /// <returns>The parameter list.</returns>
+        public ParameterListSyntax GetParameterList()
+        {
+            return ParameterList(SeparatedList(GetParameters(methodSymbol)));
+
+            static IEnumerable<ParameterSyntax> GetParameters(IMethodSymbol methodSymbol)
+            {
+                return methodSymbol.Parameters.Select(parameter =>
+                    Parameter(
+                            Identifier(parameter.Name))
+                        .WithType(parameter.Type.ToType()));
+            }
+        }
+
+        /// <summary>
+        /// Gets the object creation.
+        /// </summary>
+        /// <returns>The object creation list.</returns>
+        public ObjectCreationExpressionSyntax GetObjectCreation()
+        {
+            if (methodSymbol is { MethodKind: MethodKind.Constructor, ReceiverType: { } receiverType })
+            {
+                return ObjectCreationExpression(
+                        NameHelpers.GetQualifiedName(receiverType.ToString()))
+                    .WithArgumentList(ArgumentList(SeparatedList(GetArguments(methodSymbol))));
+            }
+
+            throw new InvalidOperationException();
+
+            static IEnumerable<ArgumentSyntax> GetArguments(IMethodSymbol methodSymbol)
+            {
+                return Enumerable.Select(methodSymbol.Parameters, parameter => Argument(IdentifierName(parameter.Name)));
+            }
+        }
     }
 }
