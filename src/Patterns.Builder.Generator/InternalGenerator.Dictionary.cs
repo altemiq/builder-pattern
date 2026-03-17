@@ -121,13 +121,7 @@ internal static partial class InternalGenerator
             .Where(p => p.Metadata.HasFlag(PropertyMetadata.ReadOnly) && p.Metadata.HasFlag(PropertyMetadata.Collection) && p.Metadata.HasFlag(PropertyMetadata.Dictionary))
             .Select(p =>
                 ForEachStatement(
-                    IdentifierName(
-                        Identifier(
-                            TriviaList(),
-                            SyntaxKind.VarKeyword,
-                            "var",
-                            "var",
-                            TriviaList())),
+                    VarIdentifierName,
                     Identifier(KeyValuePair),
                     MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,

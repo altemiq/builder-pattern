@@ -25,6 +25,14 @@ internal static partial class InternalGenerator
     private const string BuilderVariableName = "builder";
 
     private static readonly XmlElementSyntax BuilderReturn = XmlReturnsElement(XmlText("The builder for chaining."));
+    private static readonly IdentifierNameSyntax VarIdentifierName =
+        IdentifierName(
+            Identifier(
+                TriviaList(),
+                SyntaxKind.VarKeyword,
+                SyntaxFacts.GetText(SyntaxKind.VarKeyword),
+                SyntaxFacts.GetText(SyntaxKind.VarKeyword),
+                TriviaList()));
 
     /// <summary>
     /// Generates the builder.
@@ -246,13 +254,7 @@ internal static partial class InternalGenerator
             {
                 yield return LocalDeclarationStatement(
                         VariableDeclaration(
-                            IdentifierName(
-                                Identifier(
-                                    TriviaList(),
-                                    SyntaxKind.VarKeyword,
-                                    "var",
-                                    "var",
-                                    TriviaList())))
+                            VarIdentifierName)
                         .WithVariables(
                             SingletonSeparatedList(
                                 VariableDeclarator(
@@ -326,13 +328,7 @@ internal static partial class InternalGenerator
         Block(
             LocalDeclarationStatement(
                 VariableDeclaration(
-                    IdentifierName(
-                        Identifier(
-                            TriviaList(),
-                            SyntaxKind.VarKeyword,
-                            "var",
-                            "var",
-                            TriviaList())))
+                    VarIdentifierName)
                 .WithVariables(
                 SingletonSeparatedList(
                     VariableDeclarator(

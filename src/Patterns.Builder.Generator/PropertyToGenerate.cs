@@ -35,7 +35,8 @@ internal readonly record struct PropertyToGenerate(
     public static PropertyToGenerate Create(IPropertySymbol propertySymbol, ITypeSymbol? collectionTypeSymbol, ITypeSymbol? dictionaryTypeSymbol)
     {
         var name = propertySymbol.Name;
-        var fieldName = name.Camelize();
+        var fieldName = NameHelpers.EscapeKeyword(name.Camelize());
+
         var type = propertySymbol.Type;
         var typeSyntax = type.ToType();
 
@@ -145,22 +146,14 @@ internal readonly record struct PropertyToGenerate(
     /// <returns><see langword="true"/> if a builder is found; otherwise <see langword="false"/>.</returns>
     public bool TryGetBuilder(IEnumerable<BuilderToGenerate> builders, out BuilderToGenerate builder)
     {
-        var type = this.Type;
+        return (this.Type is Microsoft.CodeAnalysis.CSharp.Syntax.QualifiedNameSyntax { Right: Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax { TypeArgumentList.Arguments: [var typeArgument] } } && TryGetBuilderCore(builders, typeArgument, out builder))
+            || TryGetBuilderCore(builders, this.Type, out builder);
 
-        if (type is Microsoft.CodeAnalysis.CSharp.Syntax.QualifiedNameSyntax { Right: Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax { TypeArgumentList.Arguments: { } arguments } })
+        static bool TryGetBuilderCore(IEnumerable<BuilderToGenerate> builders, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, out BuilderToGenerate builder)
         {
-            // we have arguments
-            if (arguments.Count is not 1)
-            {
-                builder = default;
-                return false;
-            }
-
-            type = arguments[0];
+            var typeName = type.ToFullString();
+            builder = builders.FirstOrDefault(potentialBuilder => StringComparer.Ordinal.Equals(potentialBuilder.FullyQualifiedClassName, typeName));
+            return builder.ClassName is not null;
         }
-
-        var typeName = type.ToFullString();
-        builder = builders.FirstOrDefault(potentialBuilder => StringComparer.Ordinal.Equals(potentialBuilder.FullyQualifiedClassName, typeName));
-        return builder.ClassName is not null;
     }
 }

@@ -24,7 +24,7 @@ internal static partial class InternalGenerator
         bool useCollectionExpressions)
     {
         var suffix = property.Name.Singularize();
-        var singularFieldName = property.FieldName.Singularize();
+        var singularFieldName = NameHelpers.EscapeKeyword(property.FieldName.Singularize());
         var typeArgument = GetTypeArguments(property.Type).Single();
 
         return property.TryGetBuilder(builders, out var builder)
@@ -36,9 +36,9 @@ internal static partial class InternalGenerator
             return SingletonSeparatedList(Parameter(Identifier(singleName)).WithType(type));
         }
 
-        static SeparatedSyntaxList<ArgumentSyntax> GetArguments(string pluralName)
+        static SeparatedSyntaxList<ArgumentSyntax> GetArguments(string name)
         {
-            return SingletonSeparatedList(Argument(IdentifierName(pluralName.Singularize())));
+            return SingletonSeparatedList(Argument(IdentifierName(name)));
         }
 
         static IEnumerable<MemberDeclarationSyntax> GetBasicMembers(string className, string builderName, PropertyToGenerate property, string suffix, string singularFieldName, TypeSyntax typeArgument, bool useCollectionExpressions)
@@ -290,13 +290,7 @@ internal static partial class InternalGenerator
             }
 
             yield return ForEachStatement(
-                IdentifierName(
-                    Identifier(
-                        TriviaList(),
-                        SyntaxKind.VarKeyword,
-                        "var",
-                        "var",
-                        TriviaList())),
+                VarIdentifierName,
                 Identifier(Item),
                 MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,

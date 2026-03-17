@@ -15,6 +15,38 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 internal static class NameHelpers
 {
     /// <summary>
+    /// Escapes the text if it is a keyword.
+    /// </summary>
+    /// <param name="text">The text to test.</param>
+    /// <returns>The escaped text if <paramref name="text"/> represents a keyword; otherwise <paramref name="text"/>.</returns>
+    public static string EscapeKeyword(string text)
+    {
+        if (IsKeyword(text))
+        {
+            // prepend with an '@' symbol
+            return "@" + text;
+        }
+
+        return text;
+
+        static bool IsKeyword(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return false;
+            }
+
+            return
+
+                // Check if it's a reserved keyword
+                Microsoft.CodeAnalysis.CSharp.SyntaxFacts.GetKeywordKind(text) is not Microsoft.CodeAnalysis.CSharp.SyntaxKind.None
+
+                // Check if it's a contextual keyword
+                || Microsoft.CodeAnalysis.CSharp.SyntaxFacts.GetContextualKeywordKind(text) is not Microsoft.CodeAnalysis.CSharp.SyntaxKind.None;
+        }
+    }
+
+    /// <summary>
     /// Gets the qualified name.
     /// </summary>
     /// <param name="fullName">The full name.</param>
