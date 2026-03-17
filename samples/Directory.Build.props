@@ -1,6 +1,9 @@
 <Project>
 
   <PropertyGroup>
+    <Company>Altemiq</Company>
+    <RootNamespace>$(Company).$(MSBuildProjectName)</RootNamespace>
+    <AssemblyName>$(Company).$(MSBuildProjectName)</AssemblyName>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 

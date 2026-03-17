@@ -18,6 +18,7 @@ internal static partial class InternalGenerator
 {
     private static IEnumerable<MemberDeclarationSyntax> CreateLazy(string className, string builderName, PropertyToGenerate property, System.Collections.Immutable.ImmutableArray<BuilderToGenerate> builders)
     {
+        var qualifiedClassName = SyntaxFactory.QualifiedName(className);
         var lazyType = typeof(Lazy<>).ToTypeSyntax([property.Type]);
         var funcType = typeof(Func<>).ToTypeSyntax([property.Type]);
 
@@ -56,7 +57,7 @@ internal static partial class InternalGenerator
                             XmlText("Sets the "),
                             XmlSeeElement(
                                 QualifiedCref(
-                                    IdentifierName(className),
+                                    qualifiedClassName,
                                     NameMemberCref(
                                         IdentifierName(property.Name)))),
                             XmlText(" value.")),
@@ -106,7 +107,7 @@ internal static partial class InternalGenerator
                             XmlText("Sets the "),
                             XmlSeeElement(
                                 QualifiedCref(
-                                    IdentifierName(className),
+                                    SyntaxFactory.QualifiedName(className),
                                     NameMemberCref(
                                         IdentifierName(property.Name)))),
                             XmlText(" value via a factory.")),
@@ -157,7 +158,7 @@ internal static partial class InternalGenerator
                     XmlText("Sets the "),
                     XmlSeeElement(
                         QualifiedCref(
-                            IdentifierName(className),
+                            qualifiedClassName,
                             NameMemberCref(
                                 IdentifierName(property.Name)))),
                     XmlText(" value via a constructor.")),
@@ -229,7 +230,7 @@ internal static partial class InternalGenerator
                                 XmlText("Sets the "),
                                 XmlSeeElement(
                                     QualifiedCref(
-                                        IdentifierName(className),
+                                        qualifiedClassName,
                                         NameMemberCref(
                                             IdentifierName(property.Name)))),
                                 XmlText(" value via a builder.")),
@@ -247,7 +248,7 @@ internal static partial class InternalGenerator
                                     Identifier(ActionParameterName))
                                 .WithType(
                                     typeof(Action<>).ToTypeSyntax([
-                                        NameHelpers.GetQualifiedName(builder.FullQualifiedBuilderName),
+                                        SyntaxFactory.QualifiedName(builder.FullQualifiedBuilderName),
                                     ])))))
                 .WithBody(
                     Block(

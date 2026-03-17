@@ -4,11 +4,15 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace Altemiq.Patterns.Builder.Generator;
+#pragma warning disable IDE0130, CheckNamespace
+namespace Microsoft.CodeAnalysis;
+#pragma warning restore IDE0130, CheckNamespace
 
+#pragma warning disable RedundantNameQualifier
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+#pragma warning restore RedundantNameQualifier
 
 #pragma warning disable RCS1263, SA1101
 
@@ -33,7 +37,7 @@ internal static class SymbolExtensions
         {
             if (!type.IsGenericTypeDefinition)
             {
-                return NameHelpers.GetQualifiedName(type.FullName);
+                return SyntaxFactory.QualifiedName(type.FullName);
             }
 
             var index = type.Name.IndexOf('`');
@@ -47,7 +51,7 @@ internal static class SymbolExtensions
             }
 
             return QualifiedName(
-                NameHelpers.GetQualifiedName(type.Namespace),
+                SyntaxFactory.QualifiedName(type.Namespace),
                 GenericName(Identifier(name), TypeArgumentList(parameterList)));
         }
     }
@@ -250,7 +254,7 @@ internal static class SymbolExtensions
             if (methodSymbol is { MethodKind: MethodKind.Constructor, ReceiverType: { } receiverType })
             {
                 return ObjectCreationExpression(
-                        NameHelpers.GetQualifiedName(receiverType.ToString()))
+                        SyntaxFactory.QualifiedName(receiverType.ToString()))
                     .WithArgumentList(ArgumentList(SeparatedList(GetArguments(methodSymbol))));
             }
 

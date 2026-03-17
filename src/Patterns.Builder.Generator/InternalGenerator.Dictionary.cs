@@ -46,7 +46,7 @@ internal static partial class InternalGenerator
                             XmlText("Adds a key/value pair to the "),
                             XmlSeeElement(
                                 QualifiedCref(
-                                    IdentifierName(className),
+                                    SyntaxFactory.QualifiedName(className),
                                     NameMemberCref(
                                         IdentifierName(property.Name)))),
                             XmlText(" dictionary.")),

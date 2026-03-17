@@ -24,7 +24,7 @@ internal static partial class InternalGenerator
         bool useCollectionExpressions)
     {
         var suffix = property.Name.Singularize();
-        var singularFieldName = NameHelpers.EscapeKeyword(property.FieldName.Singularize());
+        var singularFieldName = SyntaxFacts.EscapeKeyword(property.FieldName.Singularize());
         var typeArgument = GetTypeArguments(property.Type).Single();
 
         return property.TryGetBuilder(builders, out var builder)
@@ -112,6 +112,7 @@ internal static partial class InternalGenerator
             BuilderToGenerate builder,
             bool useCollectionExpressions)
         {
+            var qualifiedClassName = SyntaxFactory.QualifiedName(className);
             ExpressionSyntax collectionCreation = useCollectionExpressions
                 ? CollectionExpression()
                 : ObjectCreationExpression(typeof(List<>).ToTypeSyntax([typeArgument])).WithArgumentList(ArgumentList());
@@ -142,7 +143,7 @@ internal static partial class InternalGenerator
                                 XmlText("Adds a value to the "),
                                 XmlSeeElement(
                                     QualifiedCref(
-                                        IdentifierName(className),
+                                        qualifiedClassName,
                                         NameMemberCref(
                                             IdentifierName(property.Name)))),
                                 XmlText(" collection.")),
@@ -192,7 +193,7 @@ internal static partial class InternalGenerator
                                 XmlText("Adds a value to the "),
                                 XmlSeeElement(
                                     QualifiedCref(
-                                        IdentifierName(className),
+                                        qualifiedClassName,
                                         NameMemberCref(
                                             IdentifierName(property.Name)))),
                                 XmlText(" collection via a factory.")),
@@ -234,7 +235,7 @@ internal static partial class InternalGenerator
                             Parameter(
                                     Identifier(ActionParameterName))
                                 .WithType(
-                                    typeof(Action<>).ToTypeSyntax([NameHelpers.GetQualifiedName(builder.FullQualifiedBuilderName)])))))
+                                    typeof(Action<>).ToTypeSyntax([SyntaxFactory.QualifiedName(builder.FullQualifiedBuilderName)])))))
                 .WithLeadingTrivia(
                     Trivia(
                         DocumentationComment(
@@ -242,7 +243,7 @@ internal static partial class InternalGenerator
                                 XmlText("Adds a value to the "),
                                 XmlSeeElement(
                                     QualifiedCref(
-                                        IdentifierName(className),
+                                        qualifiedClassName,
                                         NameMemberCref(
                                             IdentifierName(property.Name)))),
                                 XmlText(" collection via a builder.")),

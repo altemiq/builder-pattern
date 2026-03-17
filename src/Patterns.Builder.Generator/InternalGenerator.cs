@@ -43,6 +43,7 @@ internal static partial class InternalGenerator
     /// <returns>The generated builder.</returns>
     public static CompilationUnitSyntax GenerateNestedBuilder(BuilderToGenerate context, System.Collections.Immutable.ImmutableArray<BuilderToGenerate> builders, bool useCollectionExpressions)
     {
+        var qualifiedClassName = SyntaxFactory.QualifiedName(context.FullyQualifiedClassName);
         return InNamespace(
             context.Namespace,
             context.Properties.Any(static property => property.Metadata.HasFlag(PropertyMetadata.Nullable)),
@@ -58,8 +59,8 @@ internal static partial class InternalGenerator
                         [
                             XmlText("The "),
                             XmlSeeElement(
-                                NameMemberCref(
-                                    IdentifierName(context.ClassName))),
+                                TypeCref(
+                                    qualifiedClassName)),
                             XmlText(" builder methods."),
                         ])),
                     XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
@@ -79,15 +80,15 @@ internal static partial class InternalGenerator
                                 XmlSummaryElement(
                                     XmlText("Creates a new builder for a "),
                                     XmlSeeElement(
-                                        NameMemberCref(
-                                            IdentifierName(context.ClassName))),
+                                        TypeCref(
+                                            qualifiedClassName)),
                                     XmlText(" instance.")),
                                 XmlText(XmlTextNewLine(Constants.NewLine)),
                                 XmlReturnsElement(
                                     XmlText("The builder for a "),
                                     XmlSeeElement(
-                                        NameMemberCref(
-                                            IdentifierName(context.ClassName))),
+                                        TypeCref(
+                                            qualifiedClassName)),
                                     XmlText(" instance.")),
                                 XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
                     .WithBody(
@@ -139,7 +140,7 @@ internal static partial class InternalGenerator
         return CompilationUnit()
             .WithMembers(
             SingletonList<MemberDeclarationSyntax>(
-                NamespaceDeclaration(NameHelpers.GetQualifiedName(@namespace))
+                NamespaceDeclaration(SyntaxFactory.QualifiedName(@namespace))
                 .WithLeadingTrivia(GetLeadingTrivia(enableNullable))
                 .WithMembers(members)));
 
@@ -170,8 +171,8 @@ internal static partial class InternalGenerator
                     XmlSummaryElement(
                         XmlText("The "),
                         XmlSeeElement(
-                            NameMemberCref(
-                                IdentifierName(context.ClassName))),
+                            TypeCref(
+                                SyntaxFactory.QualifiedName(context.FullyQualifiedClassName))),
                         XmlText(" builder.")),
                     XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
             .WithMembers([.. CreateMembers(context, builders, useCollectionExpressions)]);
@@ -185,7 +186,7 @@ internal static partial class InternalGenerator
                     // check to see if the type is a read-only collection
                     if (property.Metadata.HasFlag(PropertyMetadata.Dictionary))
                     {
-                        foreach (var member in CreateDictionaryMembers(context.ClassName, context.BuilderName, property))
+                        foreach (var member in CreateDictionaryMembers(context.FullyQualifiedClassName, context.BuilderName, property))
                         {
                             yield return member;
                         }
@@ -196,7 +197,7 @@ internal static partial class InternalGenerator
                     // check to see if the type is a read-only collection
                     if (property.Metadata.HasFlag(PropertyMetadata.Collection))
                     {
-                        foreach (var member in CreateCollectionMembers(context.ClassName, context.BuilderName, property, builders, useCollectionExpressions))
+                        foreach (var member in CreateCollectionMembers(context.FullyQualifiedClassName, context.BuilderName, property, builders, useCollectionExpressions))
                         {
                             yield return member;
                         }
@@ -208,7 +209,7 @@ internal static partial class InternalGenerator
                 // check to see if the type is a primitive
                 if (property.Metadata.HasFlag(PropertyMetadata.Primitive))
                 {
-                    foreach (var member in CreatePrimitive(context.ClassName, context.BuilderName, property))
+                    foreach (var member in CreatePrimitive(context.FullyQualifiedClassName, context.BuilderName, property))
                     {
                         yield return member;
                     }
@@ -216,16 +217,18 @@ internal static partial class InternalGenerator
                     continue;
                 }
 
-                foreach (var member in CreateLazy(context.ClassName, context.BuilderName, property, builders))
+                foreach (var member in CreateLazy(context.FullyQualifiedClassName, context.BuilderName, property, builders))
                 {
                     yield return member;
                 }
             }
 
+            var qualifiedClassName = SyntaxFactory.QualifiedName(context.FullyQualifiedClassName);
+
             // return the build method
             yield return MethodDeclaration(
-                IdentifierName(context.ClassName),
-                Identifier(BuildMethod))
+                    qualifiedClassName,
+                    Identifier(BuildMethod))
                 .WithModifiers(
                 TokenList(
                     Token(SyntaxKind.PublicKeyword)))
@@ -235,15 +238,15 @@ internal static partial class InternalGenerator
                         XmlSummaryElement(
                             XmlText("Builds an instance of "),
                             XmlSeeElement(
-                                NameMemberCref(
-                                    IdentifierName(context.ClassName))),
+                                TypeCref(
+                                    qualifiedClassName)),
                             XmlText(".")),
                         XmlText(XmlTextNewLine(Constants.NewLine)),
                         XmlReturnsElement(
                             XmlText("The instance of "),
                             XmlSeeElement(
-                                NameMemberCref(
-                                    IdentifierName(context.ClassName))),
+                                TypeCref(
+                                    qualifiedClassName)),
                             XmlText(".")),
                         XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
                 .WithBody(
@@ -262,7 +265,7 @@ internal static partial class InternalGenerator
                                 .WithInitializer(
                                     EqualsValueClause(
                                         ObjectCreationExpression(
-                                            IdentifierName(context.ClassName))
+                                            SyntaxFactory.QualifiedName(context.FullyQualifiedClassName))
                                         .WithArgumentList(
                                             ArgumentList())
                                         .WithInitializer(
@@ -336,7 +339,7 @@ internal static partial class InternalGenerator
                     .WithInitializer(
                     EqualsValueClause(
                         ObjectCreationExpression(
-                            NameHelpers.GetQualifiedName(builder.FullQualifiedBuilderName))
+                            SyntaxFactory.QualifiedName(builder.FullQualifiedBuilderName))
                         .WithArgumentList(
                         ArgumentList())))))),
             ExpressionStatement(
@@ -382,13 +385,13 @@ internal static partial class InternalGenerator
                 // MyEnum.MemberName
                 return MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
-                    NameHelpers.GetQualifiedName(enumType.ToString()),
+                    SyntaxFactory.QualifiedName(enumType.ToString()),
                     IdentifierName(matchingField.Name));
             }
 
             // If no matching field found, fallback to casting the numeric value
             return CastExpression(
-                NameHelpers.GetQualifiedName(enumType.ToString()),
+                SyntaxFactory.QualifiedName(enumType.ToString()),
                 GetLiteralExpression(constant));
         }
 

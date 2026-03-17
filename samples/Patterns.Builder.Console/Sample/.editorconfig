@@ -6,6 +6,7 @@ dotnet_diagnostic.IDE0001.severity=none
 dotnet_style_namespace_match_folder=none
 
 # Resharper
+resharper_arrange_namespace_body_highlighting=none
 resharper_check_namespace_highlighting=none
 resharper_class_never_instantiated_global_highlighting=none
 resharper_partial_type_with_single_part_highlighting=none

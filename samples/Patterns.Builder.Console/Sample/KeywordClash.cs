@@ -1,9 +1,5 @@
-﻿namespace Patterns.Builder.Console.Sample
+﻿namespace Altemiq.Patterns.Builder.Console.Sample
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-
     [Altemiq.Patterns.Builder.GenerateBuilder]
     internal partial class KeywordClash
     {

@@ -7,6 +7,7 @@
 namespace Altemiq.Patterns.Builder.Generator;
 
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -164,15 +165,15 @@ public static class XDocumentExtensions
             var colonIndex = cref.IndexOf(':');
             if (colonIndex < 0)
             {
-                return NameMemberCref(NameHelpers.GetQualifiedName(cref));
+                return NameMemberCref(SyntaxFactory.QualifiedName(cref));
             }
 
             var type = cref[..colonIndex];
             colonIndex++;
             return type switch
             {
-                "T" => TypeCref(NameHelpers.GetQualifiedName(cref[colonIndex..])),
-                _ => NameMemberCref(NameHelpers.GetQualifiedName(cref[colonIndex..])),
+                "T" => TypeCref(SyntaxFactory.QualifiedName(cref[colonIndex..])),
+                _ => NameMemberCref(SyntaxFactory.QualifiedName(cref[colonIndex..])),
             };
         }
     }

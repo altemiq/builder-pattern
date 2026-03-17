@@ -8,6 +8,7 @@ namespace Altemiq.Patterns.Builder.Generator;
 
 using System.Collections.Immutable;
 using Humanizer;
+using Microsoft.CodeAnalysis.CSharp;
 
 /// <summary>
 /// The property to generate.
@@ -38,7 +39,7 @@ internal readonly record struct PropertyToGenerate(
     public static PropertyToGenerate Create(IPropertySymbol propertySymbol, ITypeSymbol? collectionTypeSymbol, ITypeSymbol? dictionaryTypeSymbol)
     {
         var name = propertySymbol.Name;
-        var fieldName = NameHelpers.EscapeKeyword(name.Camelize());
+        var fieldName = SyntaxFacts.EscapeKeyword(name.Camelize());
 
         var type = propertySymbol.Type;
         var typeSyntax = type.ToType();

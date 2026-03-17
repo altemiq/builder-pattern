@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <InternalsVisibleTo Include="Altemiq.Patterns.Builder.Console" />
+    <InternalsVisibleTo Include="Patterns.Builder.Examples" />
+    <InternalsVisibleTo Include="Patterns.Builder.Generator.Tests" />
+  </ItemGroup>
+
+</Project>

@@ -5,12 +5,16 @@ using Microsoft.CodeAnalysis.CSharp;
 var sampleDirectory = GetSampleDirectory();
 
 // get all the syntax trees
-var inputCompilation = CSharpCompilation.Create("compilation",
+var inputCompilation = CSharpCompilation.Create(
+    typeof(Altemiq.Patterns.Builder.Console.ReferenceAssemblyLocator).Namespace,
     Directory.EnumerateFiles(sampleDirectory, "*.cs").Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file))),
     [
-        .. ReferenceAssemblyLocator.GetNetCoreReferences("net10.0"),
-        MetadataReference.CreateFromFile(typeof(Altemiq.Patterns.Builder.GenerateBuilderAttribute).Assembly.Location)],
-    new(OutputKind.DynamicallyLinkedLibrary));
+        .. Altemiq.Patterns.Builder.Console.ReferenceAssemblyLocator.GetNetCoreReferences("net10.0"),
+        MetadataReference.CreateFromFile(typeof(Altemiq.Patterns.Builder.GenerateBuilderAttribute).Assembly.Location),
+        MetadataReference.CreateFromFile(typeof(Altemiq.Patterns.Builder.Internal.ClassWithInternalProperties).Assembly.Location),
+        MetadataReference.CreateFromFile(typeof(Altemiq.Patterns.Builder.InternalsVisibleTo.ClassWithInternalProperties).Assembly.Location),
+    ],
+    new(OutputKind.ConsoleApplication));
 
 // Create the driver that will control the generation, passing in our generator
 GeneratorDriver driver = CSharpGeneratorDriver.Create(new Altemiq.Patterns.Builder.Generator.BuilderGenerator());

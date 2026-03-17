@@ -50,7 +50,7 @@ internal static partial class InternalGenerator
                             XmlText("Sets the "),
                             XmlSeeElement(
                                 QualifiedCref(
-                                    IdentifierName(className),
+                                    SyntaxFactory.QualifiedName(className),
                                     NameMemberCref(
                                         IdentifierName(property.Name)))),
                             XmlText(" value.")),

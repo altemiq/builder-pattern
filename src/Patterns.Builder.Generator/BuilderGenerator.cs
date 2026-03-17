@@ -19,6 +19,8 @@ public class BuilderGenerator : IIncrementalGenerator
     /// <inheritdoc/>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        AttachToDebugger(TimeSpan.FromSeconds(300));
+
         var compilationDetails = context.CompilationProvider
             .Select((x, _) => x is CSharpCompilation compilation ? compilation.LanguageVersion : default);
 
@@ -116,13 +118,15 @@ public class BuilderGenerator : IIncrementalGenerator
                     var collectionTypeSymbol = context.SemanticModel.Compilation.GetTypeByMetadataName("System.Collections.Generic.ICollection`1");
                     var dictionaryTypeSymbol = context.SemanticModel.Compilation.GetTypeByMetadataName("System.Collections.Generic.IDictionary`2");
 
+                    var internalsVisiblyTo = classTypeSymbol.ContainingAssembly.GivesAccessTo(builderTypeSymbol.ContainingAssembly);
+
                     // get the properties
                     var properties = classTypeSymbol
                         .GetMembers()
                         .Where(m => !m.IsStatic)
                         .OfType<IPropertySymbol>()
                         .Select(propertySymbol => PropertyToGenerate.Create(propertySymbol, collectionTypeSymbol, dictionaryTypeSymbol))
-                        .Where(property => property.Accessibility is SyntaxKind.PublicKeyword)
+                        .Where(property => (internalsVisiblyTo && property.Accessibility is SyntaxKind.InternalKeyword) || property.Accessibility is SyntaxKind.PublicKeyword)
                         .ToImmutableArray();
 
                     return new BuilderToGenerate(
@@ -180,6 +184,37 @@ public class BuilderGenerator : IIncrementalGenerator
                 RecordDeclarationSyntax => SyntaxKind.RecordDeclaration,
                 _ => throw new NotSupportedException(),
             };
+        }
+    }
+
+    [System.Diagnostics.Conditional("DEBUG_SOURCE_GENERATORS")]
+    private static void AttachToDebugger(TimeSpan? limit = null)
+    {
+        if (System.Diagnostics.Debugger.IsAttached)
+        {
+            System.Diagnostics.Debugger.Break();
+            return;
+        }
+
+        if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows)
+            && System.Diagnostics.Debugger.Launch())
+        {
+            return;
+        }
+
+        limit ??= TimeSpan.FromSeconds(30);
+        var source = new CancellationTokenSource(limit.Value);
+
+        try
+        {
+            while (!System.Diagnostics.Debugger.IsAttached && !source.IsCancellationRequested)
+            {
+                Thread.Sleep(100);
+            }
+        }
+        finally
+        {
+            source.Dispose();
         }
     }
 }
