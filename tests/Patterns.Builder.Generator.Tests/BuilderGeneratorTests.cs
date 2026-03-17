@@ -139,7 +139,7 @@ public class BuilderGeneratorTests
     [Test]
     public async Task TestLazy()
     {
-        var context =  new CSharpSourceGeneratorTest<BuilderGenerator, DefaultVerifier>
+        var context = new CSharpSourceGeneratorTest<BuilderGenerator, DefaultVerifier>
         {
             ReferenceAssemblies = GetReferenceAssemblies(),
             TestCode =

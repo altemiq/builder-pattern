@@ -63,7 +63,8 @@ internal static class SymbolExtensions
         /// </summary>
         public bool IsPrimitiveOrNullablePrimitive => type switch
         {
-            { SpecialType: SpecialType.System_Boolean or
+            {
+                SpecialType: SpecialType.System_Boolean or
                     SpecialType.System_Char or
                     SpecialType.System_SByte or
                     SpecialType.System_Byte or

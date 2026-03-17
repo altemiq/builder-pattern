@@ -8,7 +8,7 @@ public class WithEnumTests
         var builder = Builder.Examples.WithEnum.CreateBuilder();
         await Assert.That(builder.Build()).Member(x => x.FileAccess, fileAccess => fileAccess.IsEqualTo(FileAccess.Write));
     }
-    
+
     [Test]
     public async Task SetEnum()
     {
