@@ -20,25 +20,6 @@ internal static class SyntaxFactoryExtensions
         /// </summary>
         /// <param name="fullName">The full name.</param>
         /// <returns><see cref="Syntax.NameSyntax"/>.</returns>
-        public static Syntax.NameSyntax QualifiedName(string? fullName)
-        {
-            return GetNames(fullName).ToQualifiedName();
-
-            static IEnumerable<Syntax.IdentifierNameSyntax> GetNames(string? fullName)
-            {
-                return fullName switch
-                {
-                    not null => fullName.Split('.').Select(RemoveAttribute).Select(SyntaxFactory.IdentifierName),
-                    _ => [],
-                };
-
-                static string RemoveAttribute(string name)
-                {
-                    return name.EndsWith(nameof(Attribute), StringComparison.Ordinal)
-                        ? name[..^nameof(Attribute).Length]
-                        : name;
-                }
-            }
-        }
+        public static Syntax.NameSyntax QualifiedName(string fullName) => fullName.Split('.').Select(SyntaxFactory.IdentifierName).ToQualifiedName();
     }
 }

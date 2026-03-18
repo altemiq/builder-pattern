@@ -22,41 +22,6 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 internal static class SymbolExtensions
 {
     /// <content>
-    /// The <see cref="Type"/> extensions.
-    /// </content>
-    /// <param name="type">The type.</param>
-    extension(Type type)
-    {
-        /// <summary>
-        /// Converts the type to the <see cref="TypeSyntax"/>.
-        /// </summary>
-        /// <param name="parameters">The type parameters.</param>
-        /// <returns>The type syntax.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">The parameters are the wrong length.</exception>
-        public NameSyntax ToTypeSyntax(IEnumerable<TypeSyntax> parameters)
-        {
-            if (!type.IsGenericTypeDefinition)
-            {
-                return SyntaxFactory.QualifiedName(type.FullName);
-            }
-
-            var index = type.Name.IndexOf('`');
-            var name = type.Name[..index];
-            var count = int.Parse(type.Name[(index + 1)..], System.Globalization.CultureInfo.InvariantCulture);
-
-            var parameterList = SeparatedList(parameters);
-            if (count != parameterList.Count)
-            {
-                throw new ArgumentOutOfRangeException(nameof(parameters));
-            }
-
-            return QualifiedName(
-                SyntaxFactory.QualifiedName(type.Namespace),
-                GenericName(Identifier(name), TypeArgumentList(parameterList)));
-        }
-    }
-
-    /// <content>
     /// The <see cref="ITypeSymbol"/> extensions.
     /// </content>
     /// <param name="type">The type symbol.</param>
@@ -211,7 +176,7 @@ internal static class SymbolExtensions
         {
             { SpecialType: SpecialType.System_Collections_Generic_ICollection_T } => true,
             { OriginalDefinition: { } originalDefinition } when SymbolEqualityComparer.Default.Equals(originalDefinition, collectionType) => true,
-            { AllInterfaces: { } interfaces } when interfaces.Select(i => i.OriginalDefinition).Contains(collectionType, SymbolEqualityComparer.Default) => true,
+            { AllInterfaces: var interfaces } when interfaces.Select(i => i.OriginalDefinition).Contains(collectionType, SymbolEqualityComparer.Default) => true,
             _ => false,
         };
 
@@ -221,29 +186,28 @@ internal static class SymbolExtensions
         public bool IsDictionary(ITypeSymbol? dictionaryType) => type switch
         {
             { OriginalDefinition: { } originalDefinition } when SymbolEqualityComparer.Default.Equals(originalDefinition, dictionaryType) => true,
-            { AllInterfaces: { } interfaces } when interfaces.Select(i => i.OriginalDefinition).Contains(dictionaryType, SymbolEqualityComparer.Default) => true,
+            { AllInterfaces: var interfaces } when interfaces.Select(i => i.OriginalDefinition).Contains(dictionaryType, SymbolEqualityComparer.Default) => true,
             _ => false,
         };
     }
 
-    extension(IMethodSymbol methodSymbol)
+    /// <content>
+    /// The <see cref="IMethodSymbol"/> extensions.
+    /// </content>
+    /// <param name="method">The method symbol.</param>
+    extension(IMethodSymbol method)
     {
         /// <summary>
         /// Gets the parameter list.
         /// </summary>
         /// <returns>The parameter list.</returns>
-        public ParameterListSyntax GetParameterList()
-        {
-            return ParameterList(SeparatedList(GetParameters(methodSymbol)));
-
-            static IEnumerable<ParameterSyntax> GetParameters(IMethodSymbol methodSymbol)
-            {
-                return methodSymbol.Parameters.Select(parameter =>
-                    Parameter(
-                            Identifier(parameter.Name))
-                        .WithType(parameter.Type.ToType()));
-            }
-        }
+        public ParameterListSyntax GetParameterList() =>
+            ParameterList(
+                SeparatedList(
+                    method.Parameters.Select(parameter =>
+                        Parameter(
+                                Identifier(parameter.Name))
+                            .WithType(parameter.Type.ToType()))));
 
         /// <summary>
         /// Gets the object creation.
@@ -251,19 +215,17 @@ internal static class SymbolExtensions
         /// <returns>The object creation list.</returns>
         public ObjectCreationExpressionSyntax GetObjectCreation()
         {
-            if (methodSymbol is { MethodKind: MethodKind.Constructor, ReceiverType: { } receiverType })
+            if (method is { MethodKind: MethodKind.Constructor, ReceiverType: { } receiverType })
             {
                 return ObjectCreationExpression(
                         SyntaxFactory.QualifiedName(receiverType.ToString()))
-                    .WithArgumentList(ArgumentList(SeparatedList(GetArguments(methodSymbol))));
+                    .WithArgumentList(
+                        ArgumentList(
+                            SeparatedList(
+                                method.Parameters.Select(static parameter => Argument(IdentifierName(parameter.Name))))));
             }
 
             throw new InvalidOperationException();
-
-            static IEnumerable<ArgumentSyntax> GetArguments(IMethodSymbol methodSymbol)
-            {
-                return Enumerable.Select(methodSymbol.Parameters, parameter => Argument(IdentifierName(parameter.Name)));
-            }
         }
     }
 }
