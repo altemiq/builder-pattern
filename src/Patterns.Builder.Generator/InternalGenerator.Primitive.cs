@@ -25,7 +25,7 @@ internal static partial class InternalGenerator
         {
             variableDeclarator = variableDeclarator
                 .WithInitializer(
-                    EqualsValueClause(CreateExpressionFromTypedConstant(defaultValue)));
+                    EqualsValueClause(defaultValue));
         }
 
         yield return FieldDeclaration(

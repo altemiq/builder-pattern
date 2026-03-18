@@ -27,7 +27,7 @@ internal readonly record struct PropertyToGenerate(
     TypeSyntax Type,
     PropertyMetadata Metadata,
     SyntaxKind Accessibility,
-    TypedConstant? DefaultValue,
+    ExpressionSyntax? DefaultValue,
     IImmutableList<IMethodSymbol> Constructors)
 {
     /// <summary>
@@ -158,16 +158,61 @@ internal readonly record struct PropertyToGenerate(
             return SyntaxKind.PrivateKeyword;
         }
 
-        static TypedConstant? GetDefaultValue(IPropertySymbol propertySymbol)
+        static ExpressionSyntax? GetDefaultValue(IPropertySymbol propertySymbol)
         {
             foreach (var attribute in propertySymbol.GetAttributes())
             {
                 if (attribute is { AttributeClass.Name: { } name }
                     && (StringComparer.Ordinal.Equals(name, TypeNames.DefaultValueAttributeShortName) ||
-                        StringComparer.Ordinal.Equals(name, TypeNames.DefaultValueAttributeLongName))
-                    && attribute.ConstructorArguments is [var defaultValueConstant])
+                        StringComparer.Ordinal.Equals(name, TypeNames.DefaultValueAttributeLongName)))
                 {
-                    return defaultValueConstant;
+                    if (attribute.ConstructorArguments is [var defaultValueConstant])
+                    {
+                        return CreateExpressionFromTypedConstant(defaultValueConstant);
+                    }
+
+                    // converter based
+                    if (attribute.ConstructorArguments is [var typeArgument, var stringArgument])
+                    {
+                        // this needs to be an expression
+                        const string defaultValueAttribute = nameof(defaultValueAttribute);
+                        return SyntaxFactory.ParenthesizedLambdaExpression()
+                            .WithBlock(
+                                SyntaxFactory.Block(
+                                    SyntaxFactory.LocalDeclarationStatement(
+                                        SyntaxFactory.VariableDeclaration(
+                                                SyntaxFactory.IdentifierName(
+                                                    SyntaxFactory.Identifier(
+                                                        SyntaxFactory.TriviaList(),
+                                                        SyntaxKind.VarKeyword,
+                                                        SyntaxFacts.GetText(SyntaxKind.VarKeyword),
+                                                        SyntaxFacts.GetText(SyntaxKind.VarKeyword),
+                                                        SyntaxFactory.TriviaList())))
+                                            .WithVariables(
+                                                SyntaxFactory.SingletonSeparatedList(
+                                                    SyntaxFactory.VariableDeclarator(
+                                                            SyntaxFactory.Identifier(defaultValueAttribute))
+                                                        .WithInitializer(
+                                                            SyntaxFactory.EqualsValueClause(
+                                                                SyntaxFactory.ObjectCreationExpression(
+                                                                        typeof(System.ComponentModel.DefaultValueAttribute).ToTypeSyntax([]))
+                                                                    .WithArgumentList(
+                                                                        SyntaxFactory.ArgumentList(
+                                                                            SyntaxFactory.SeparatedList<ArgumentSyntax>(
+                                                                            [
+                                                                                SyntaxFactory.Argument(
+                                                                                    CreateExpressionFromTypedConstant(typeArgument)),
+                                                                                SyntaxFactory.Argument(
+                                                                                    CreateExpressionFromTypedConstant(stringArgument)),
+                                                                            ])))))))),
+                                    SyntaxFactory.ReturnStatement(
+                                        SyntaxFactory.CastExpression(
+                                            propertySymbol.Type.ToType(),
+                                            SyntaxFactory.MemberAccessExpression(
+                                                SyntaxKind.SimpleMemberAccessExpression,
+                                                SyntaxFactory.IdentifierName(defaultValueAttribute),
+                                                SyntaxFactory.IdentifierName(nameof(System.ComponentModel.DefaultValueAttribute.Value)))))));
+                    }
                 }
             }
 
@@ -176,13 +221,26 @@ internal readonly record struct PropertyToGenerate(
     }
 
     /// <inheritdoc/>
-    public bool Equals(PropertyToGenerate other) => StringComparer.Ordinal.Equals(this.Name, other.Name)
-                                                    && StringComparer.Ordinal.Equals(this.FieldName, other.FieldName)
-                                                    && StringComparer.Ordinal.Equals(this.Type.ToFullString(), other.Type.ToFullString())
-                                                    && this.Metadata == other.Metadata
-                                                    && this.Accessibility == other.Accessibility
-                                                    && this.DefaultValue.GetValueOrDefault().Equals(other.DefaultValue.GetValueOrDefault())
-                                                    && this.Constructors.Equals(other.Constructors);
+    public bool Equals(PropertyToGenerate other)
+    {
+        return StringComparer.Ordinal.Equals(this.Name, other.Name)
+               && StringComparer.Ordinal.Equals(this.FieldName, other.FieldName)
+               && CheckSyntaxNodesViaToString(this.Type, other.Type)
+               && this.Metadata == other.Metadata
+               && this.Accessibility == other.Accessibility
+               && CheckSyntaxNodesViaToString(this.DefaultValue, other.DefaultValue)
+               && this.Constructors.Equals(other.Constructors);
+
+        static bool CheckSyntaxNodesViaToString(SyntaxNode? left, SyntaxNode? right)
+        {
+            return (left, right) switch
+            {
+                (not null, not null) => StringComparer.Ordinal.Equals(left.ToFullString(), right.ToFullString()),
+                (null, null) => true,
+                _ => false,
+            };
+        }
+    }
 
     /// <inheritdoc/>
     public override int GetHashCode()
@@ -222,6 +280,95 @@ internal readonly record struct PropertyToGenerate(
             var typeName = type.ToFullString();
             builder = builders.FirstOrDefault(potentialBuilder => StringComparer.Ordinal.Equals(potentialBuilder.FullyQualifiedClassName, typeName));
             return builder.ClassName is not null;
+        }
+    }
+
+    private static ExpressionSyntax CreateExpressionFromTypedConstant(TypedConstant constant)
+    {
+        return constant switch
+        {
+            { IsNull: true } => SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression),
+            { Kind: TypedConstantKind.Primitive } => GetLiteralExpression(constant),
+            { Kind: TypedConstantKind.Enum } => CreateEnumExpression(constant),
+            { Kind: TypedConstantKind.Type } => CreateTypeOfExpression(constant),
+            _ => throw new NotSupportedException($"Unsupported TypedConstantKind: {constant.Kind}"),
+        };
+
+        static ExpressionSyntax CreateEnumExpression(TypedConstant constant)
+        {
+            if (constant.Type is not INamedTypeSymbol { TypeKind: TypeKind.Enum } enumType)
+            {
+                throw new InvalidOperationException($"{nameof(TypedConstant)} is not an enum type.");
+            }
+
+            // Try to find the enum member with the matching constant value
+            var matchingField = enumType
+                .GetMembers()
+                .OfType<IFieldSymbol>()
+                .FirstOrDefault(f => f.HasConstantValue && Equals(f.ConstantValue, constant.Value));
+
+            if (matchingField != null)
+            {
+                // MyEnum.MemberName
+                return SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.QualifiedName(enumType.ToString()),
+                    SyntaxFactory.IdentifierName(matchingField.Name));
+            }
+
+            // If no matching field found, fallback to casting the numeric value
+            return SyntaxFactory.CastExpression(
+                SyntaxFactory.QualifiedName(enumType.ToString()),
+                GetLiteralExpression(constant));
+        }
+
+        static ExpressionSyntax CreateTypeOfExpression(TypedConstant constant)
+        {
+            if (constant.Value is { } value)
+            {
+                return SyntaxFactory.TypeOfExpression(
+                    SyntaxFactory.QualifiedName(value.ToString()));
+            }
+
+            throw new InvalidOperationException($"{nameof(TypedConstant)} is not a typeof.");
+        }
+
+        static LiteralExpressionSyntax GetLiteralExpression(TypedConstant constant)
+        {
+            return SyntaxFactory.LiteralExpression(
+                GetLiteralExpressionKind(constant.Value),
+                GetLiteralExpressionToken(constant.Value));
+
+            static SyntaxKind GetLiteralExpressionKind(object? value) =>
+                value switch
+                {
+                    int or double or float => SyntaxKind.NumericLiteralExpression,
+                    true => SyntaxKind.TrueLiteralExpression,
+                    false => SyntaxKind.FalseLiteralExpression,
+                    char => SyntaxKind.CharacterLiteralExpression,
+                    null => SyntaxKind.NullLiteralExpression,
+                    _ => SyntaxKind.StringLiteralExpression,
+                };
+
+            static SyntaxToken GetLiteralExpressionToken(object? value) =>
+                value switch
+                {
+                    sbyte i => SyntaxFactory.Literal(i),
+                    byte i => SyntaxFactory.Literal(i),
+                    short i => SyntaxFactory.Literal(i),
+                    ushort i => SyntaxFactory.Literal(i),
+                    int i => SyntaxFactory.Literal(i),
+                    uint i => SyntaxFactory.Literal(i),
+                    long i => SyntaxFactory.Literal(i),
+                    ulong i => SyntaxFactory.Literal(i),
+                    float f => SyntaxFactory.Literal(f),
+                    double f => SyntaxFactory.Literal(f),
+                    decimal f => SyntaxFactory.Literal(f),
+                    char c => SyntaxFactory.Literal(c),
+                    string s => SyntaxFactory.Literal(s),
+                    not null => SyntaxFactory.Literal(value.ToString()),
+                    _ => SyntaxFactory.Token(SyntaxKind.NullKeyword),
+                };
         }
     }
 }

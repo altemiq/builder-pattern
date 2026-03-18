@@ -22,6 +22,24 @@ internal static partial class InternalGenerator
         var lazyType = typeof(Lazy<>).ToTypeSyntax([property.Type]);
         var funcType = typeof(Func<>).ToTypeSyntax([property.Type]);
 
+        var defaultValueExpression = property.DefaultValue switch
+        {
+            LambdaExpressionSyntax lambdaDefaultExpression => lambdaDefaultExpression,
+            { } defaultExpression => ParenthesizedLambdaExpression().WithExpressionBody(defaultExpression),
+            _ when property.Metadata.HasFlag(PropertyMetadata.Nullable) => ParenthesizedLambdaExpression()
+                .WithExpressionBody(
+                    PostfixUnaryExpression(
+                        SyntaxKind.SuppressNullableWarningExpression,
+                        LiteralExpression(
+                            SyntaxKind.DefaultLiteralExpression,
+                            Token(SyntaxKind.DefaultKeyword)))),
+            _ => ParenthesizedLambdaExpression()
+                .WithExpressionBody(
+                    LiteralExpression(
+                        SyntaxKind.DefaultLiteralExpression,
+                        Token(SyntaxKind.DefaultKeyword))),
+        };
+
         yield return FieldDeclaration(
                 VariableDeclaration(lazyType)
                     .WithVariables(
@@ -35,11 +53,7 @@ internal static partial class InternalGenerator
                                                 ArgumentList(
                                                     SingletonSeparatedList(
                                                         Argument(
-                                                            ParenthesizedLambdaExpression()
-                                                                .WithExpressionBody(
-                                                                    LiteralExpression(
-                                                                        SyntaxKind.DefaultLiteralExpression,
-                                                                        Token(SyntaxKind.DefaultKeyword))))))))))))
+                                                            defaultValueExpression)))))))))
             .WithModifiers(
                 TokenList(
                     Token(SyntaxKind.PrivateKeyword)));
