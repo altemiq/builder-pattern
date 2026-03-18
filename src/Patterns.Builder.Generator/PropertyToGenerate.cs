@@ -57,13 +57,16 @@ internal readonly record struct PropertyToGenerate(
             metadata |= PropertyMetadata.ReadOnly;
         }
 
+        var collection = false;
         if (type.IsCollection(collectionTypeSymbol))
         {
+            collection = true;
             metadata |= PropertyMetadata.Collection;
         }
 
         if (type.IsDictionary(dictionaryTypeSymbol))
         {
+            collection = false;
             metadata |= PropertyMetadata.Dictionary;
         }
 
@@ -74,7 +77,7 @@ internal readonly record struct PropertyToGenerate(
 
         var accessibility = GetAccessibility(propertySymbol, metadata);
         var defaultValue = GetDefaultValue(propertySymbol);
-        if (GetInstanceConstructors(propertySymbol.Type) is not { Count: not 0 } instanceConstructors)
+        if (GetInstanceConstructors(propertySymbol.Type, collection) is not { Count: not 0 } instanceConstructors)
         {
             return new(name, fieldName, typeSyntax, metadata, accessibility, defaultValue, []);
         }
@@ -105,16 +108,22 @@ internal readonly record struct PropertyToGenerate(
 
         return new(name, fieldName, typeSyntax, metadata, accessibility, defaultValue, constructors);
 
-        static ICollection<IMethodSymbol> GetInstanceConstructors(ITypeSymbol type)
+        static ICollection<IMethodSymbol> GetInstanceConstructors(ITypeSymbol type, bool collection)
         {
             while (true)
             {
                 // if this is a nullable value type, then get the value type
                 if (type.NullableAnnotation is NullableAnnotation.Annotated
                     && type.IsValueType
-                    && type is INamedTypeSymbol { TypeArguments: [var typeArgument] })
+                    && type is INamedTypeSymbol { TypeArguments: [var nullableTypeArgument] })
                 {
-                    type = typeArgument;
+                    type = nullableTypeArgument;
+                    continue;
+                }
+
+                if (collection && type is INamedTypeSymbol { TypeArguments: [var collectionTypeArgument] })
+                {
+                    type = collectionTypeArgument;
                     continue;
                 }
 

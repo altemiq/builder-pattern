@@ -43,6 +43,7 @@ internal static partial class InternalGenerator
 
         static IEnumerable<MemberDeclarationSyntax> GetBasicMembers(string className, string builderName, PropertyToGenerate property, string suffix, string singularFieldName, TypeSyntax typeArgument, bool useCollectionExpressions)
         {
+            var qualifiedClassName = SyntaxFactory.QualifiedName(className);
             ExpressionSyntax collectionCreation = useCollectionExpressions
                 ? CollectionExpression()
                 : ObjectCreationExpression(typeof(List<>).ToTypeSyntax([typeArgument])).WithArgumentList(ArgumentList());
@@ -71,7 +72,7 @@ internal static partial class InternalGenerator
                                 XmlText("Adds a value to the "),
                                 XmlSeeElement(
                                     QualifiedCref(
-                                        IdentifierName(className),
+                                        qualifiedClassName,
                                         NameMemberCref(
                                             IdentifierName(property.Name)))),
                                 XmlText(" collection.")),
@@ -100,6 +101,74 @@ internal static partial class InternalGenerator
                                         GetArguments(singularFieldName)))),
                         ReturnStatement(
                             ThisExpression())));
+
+            // do any constructors
+            foreach (var constructor in property.Constructors)
+            {
+                // if this has any ref-like parameters we can't use it
+                if (constructor.Parameters.Any(p => p.Type.IsRefLikeType))
+                {
+                    continue;
+                }
+
+                var documentation = new List<XmlNodeSyntax>
+                {
+                    XmlSummaryElement(
+                        XmlText("Adds a value to the "),
+                        XmlSeeElement(
+                            QualifiedCref(
+                                qualifiedClassName,
+                                NameMemberCref(
+                                    IdentifierName(property.Name)))),
+                        XmlText(" collection value via a constructor.")),
+                    XmlText(XmlTextNewLine(Constants.NewLine)),
+                };
+
+                if (constructor.GetDocumentationCommentXml() is { Length: > 0 } xml
+                    && System.Xml.Linq.XDocument.Parse(xml) is { Root: { } root })
+                {
+                    // get the parameters
+                    foreach (var node in root.Nodes().OfType<System.Xml.Linq.XElement>().Where(n => n.Name.LocalName is "param"))
+                    {
+                        documentation.Add(node.ToXmlNode());
+                        documentation.Add(XmlText(XmlTextNewLine(Constants.NewLine)));
+                    }
+                }
+
+                documentation.Add(BuilderReturn);
+                documentation.Add(XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)));
+
+                yield return MethodDeclaration(
+                        IdentifierName(builderName),
+                        Identifier($"Add{suffix}"))
+                    .WithModifiers(
+                        TokenList(
+                            Token(property.Accessibility)))
+                    .WithLeadingTrivia(
+                        Trivia(
+                            DocumentationComment(
+                                [.. documentation])))
+                    .WithParameterList(
+                        constructor.GetParameterList())
+                    .WithBody(
+                        Block(
+                            ExpressionStatement(
+                                InvocationExpression(
+                                        MemberAccessExpression(
+                                            SyntaxKind.SimpleMemberAccessExpression,
+                                            MemberAccessExpression(
+                                                SyntaxKind.SimpleMemberAccessExpression,
+                                                ThisExpression(),
+                                                IdentifierName(property.FieldName)),
+                                            IdentifierName(nameof(ICollection<>.Add))))
+                                    .WithArgumentList(
+                                        ArgumentList(
+                                            SingletonSeparatedList(
+                                                Argument(
+                                                constructor.GetObjectCreation()))))),
+                            ReturnStatement(
+                                ThisExpression())));
+            }
         }
 
         static IEnumerable<MemberDeclarationSyntax> GetBuilderMethods(
@@ -223,6 +292,73 @@ internal static partial class InternalGenerator
                         ReturnStatement(
                             ThisExpression())));
 
+            foreach (var constructor in property.Constructors)
+            {
+                // if this has any ref-like parameters we can't use it
+                if (constructor.Parameters.Any(p => p.Type.IsRefLikeType))
+                {
+                    continue;
+                }
+
+                var documentation = new List<XmlNodeSyntax>
+                {
+                    XmlSummaryElement(
+                        XmlText("Adds a value to the "),
+                        XmlSeeElement(
+                            QualifiedCref(
+                                qualifiedClassName,
+                                NameMemberCref(
+                                    IdentifierName(property.Name)))),
+                        XmlText(" collection value via a constructor.")),
+                    XmlText(XmlTextNewLine(Constants.NewLine)),
+                };
+
+                if (constructor.GetDocumentationCommentXml() is { Length: > 0 } xml
+                    && System.Xml.Linq.XDocument.Parse(xml) is { Root: { } root })
+                {
+                    // get the parameters
+                    foreach (var node in root.Nodes().OfType<System.Xml.Linq.XElement>().Where(n => n.Name.LocalName is "param"))
+                    {
+                        documentation.Add(node.ToXmlNode());
+                        documentation.Add(XmlText(XmlTextNewLine(Constants.NewLine)));
+                    }
+                }
+
+                documentation.Add(BuilderReturn);
+                documentation.Add(XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)));
+
+                yield return MethodDeclaration(
+                        IdentifierName(builderName),
+                        Identifier($"Add{property.Name}"))
+                    .WithModifiers(
+                        TokenList(
+                            Token(property.Accessibility)))
+                    .WithLeadingTrivia(
+                        Trivia(
+                            DocumentationComment(
+                                [.. documentation])))
+                    .WithParameterList(
+                        constructor.GetParameterList())
+                    .WithBody(
+                        Block(
+                            ExpressionStatement(
+                                InvocationExpression(
+                                        MemberAccessExpression(
+                                            SyntaxKind.SimpleMemberAccessExpression,
+                                            MemberAccessExpression(
+                                                SyntaxKind.SimpleMemberAccessExpression,
+                                                ThisExpression(),
+                                                IdentifierName(property.FieldName)),
+                                            IdentifierName(nameof(ICollection<>.Add))))
+                                    .WithArgumentList(
+                                        ArgumentList(
+                                            SingletonSeparatedList(
+                                                Argument(
+                                                    constructor.GetObjectCreation()))))),
+                            ReturnStatement(
+                                ThisExpression())));
+            }
+
             yield return MethodDeclaration(
                     IdentifierName(builderName),
                     Identifier($"Add{suffix}"))
@@ -249,7 +385,7 @@ internal static partial class InternalGenerator
                                 XmlText(" collection via a builder.")),
                             XmlText(XmlTextNewLine(Constants.NewLine)),
                             XmlParamElement(
-                                property.FieldName,
+                                ActionParameterName,
                                 XmlText($"The {property.FieldName.Humanize(LetterCasing.LowerCase)} action.")),
                             XmlText(XmlTextNewLine(Constants.NewLine)),
                             BuilderReturn,
