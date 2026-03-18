@@ -9,6 +9,7 @@ namespace Altemiq.Patterns.Builder.Generator;
 using System.Collections.Immutable;
 using Humanizer;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 /// <summary>
 /// The property to generate.
@@ -23,9 +24,9 @@ using Microsoft.CodeAnalysis.CSharp;
 internal readonly record struct PropertyToGenerate(
     string Name,
     string FieldName,
-    Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax Type,
+    TypeSyntax Type,
     PropertyMetadata Metadata,
-    Microsoft.CodeAnalysis.CSharp.SyntaxKind Accessibility,
+    SyntaxKind Accessibility,
     TypedConstant? DefaultValue,
     IImmutableList<IMethodSymbol> Constructors)
 {
@@ -73,7 +74,7 @@ internal readonly record struct PropertyToGenerate(
 
         var accessibility = GetAccessibility(propertySymbol, metadata);
         var defaultValue = GetDefaultValue(propertySymbol);
-        if (propertySymbol.Type is not INamedTypeSymbol { InstanceConstructors: { Length: not 0 } instanceConstructors })
+        if (GetInstanceConstructors(propertySymbol.Type) is not { Count: not 0 } instanceConstructors)
         {
             return new(name, fieldName, typeSyntax, metadata, accessibility, defaultValue, []);
         }
@@ -104,15 +105,34 @@ internal readonly record struct PropertyToGenerate(
 
         return new(name, fieldName, typeSyntax, metadata, accessibility, defaultValue, constructors);
 
-        static Microsoft.CodeAnalysis.CSharp.SyntaxKind GetAccessibility(IPropertySymbol propertySymbol, PropertyMetadata metadata)
+        static ICollection<IMethodSymbol> GetInstanceConstructors(ITypeSymbol type)
+        {
+            while (true)
+            {
+                // if this is a nullable value type, then get the value type
+                if (type.NullableAnnotation is NullableAnnotation.Annotated
+                    && type.IsValueType
+                    && type is INamedTypeSymbol { TypeArguments: [var typeArgument] })
+                {
+                    type = typeArgument;
+                    continue;
+                }
+
+                return type is INamedTypeSymbol { InstanceConstructors: var instanceConstructors }
+                    ? instanceConstructors
+                    : [];
+            }
+        }
+
+        static SyntaxKind GetAccessibility(IPropertySymbol propertySymbol, PropertyMetadata metadata)
         {
             if (metadata.HasFlag(PropertyMetadata.ReadOnly) && metadata.HasFlag(PropertyMetadata.Collection) && propertySymbol.GetMethod is { DeclaredAccessibility: var getDeclaredAccessibility })
             {
                 return getDeclaredAccessibility switch
                 {
-                    Microsoft.CodeAnalysis.Accessibility.Internal => Microsoft.CodeAnalysis.CSharp.SyntaxKind.InternalKeyword,
-                    Microsoft.CodeAnalysis.Accessibility.Public => Microsoft.CodeAnalysis.CSharp.SyntaxKind.PublicKeyword,
-                    _ => Microsoft.CodeAnalysis.CSharp.SyntaxKind.PrivateKeyword,
+                    Microsoft.CodeAnalysis.Accessibility.Internal => SyntaxKind.InternalKeyword,
+                    Microsoft.CodeAnalysis.Accessibility.Public => SyntaxKind.PublicKeyword,
+                    _ => SyntaxKind.PrivateKeyword,
                 };
             }
 
@@ -120,13 +140,13 @@ internal readonly record struct PropertyToGenerate(
             {
                 return setDeclaredAccessibility switch
                 {
-                    Microsoft.CodeAnalysis.Accessibility.Internal => Microsoft.CodeAnalysis.CSharp.SyntaxKind.InternalKeyword,
-                    Microsoft.CodeAnalysis.Accessibility.Public => Microsoft.CodeAnalysis.CSharp.SyntaxKind.PublicKeyword,
-                    _ => Microsoft.CodeAnalysis.CSharp.SyntaxKind.PrivateKeyword,
+                    Microsoft.CodeAnalysis.Accessibility.Internal => SyntaxKind.InternalKeyword,
+                    Microsoft.CodeAnalysis.Accessibility.Public => SyntaxKind.PublicKeyword,
+                    _ => SyntaxKind.PrivateKeyword,
                 };
             }
 
-            return Microsoft.CodeAnalysis.CSharp.SyntaxKind.PrivateKeyword;
+            return SyntaxKind.PrivateKeyword;
         }
 
         static TypedConstant? GetDefaultValue(IPropertySymbol propertySymbol)
@@ -185,10 +205,10 @@ internal readonly record struct PropertyToGenerate(
     /// <returns><see langword="true"/> if a builder is found; otherwise <see langword="false"/>.</returns>
     public bool TryGetBuilder(ICollection<BuilderToGenerate> builders, out BuilderToGenerate builder)
     {
-        return (this.Type is Microsoft.CodeAnalysis.CSharp.Syntax.QualifiedNameSyntax { Right: Microsoft.CodeAnalysis.CSharp.Syntax.GenericNameSyntax { TypeArgumentList.Arguments: [var typeArgument] } } && TryGetBuilderCore(builders, typeArgument, out builder))
+        return (this.Type is QualifiedNameSyntax { Right: GenericNameSyntax { TypeArgumentList.Arguments: [var typeArgument] } } && TryGetBuilderCore(builders, typeArgument, out builder))
             || TryGetBuilderCore(builders, this.Type, out builder);
 
-        static bool TryGetBuilderCore(IEnumerable<BuilderToGenerate> builders, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, out BuilderToGenerate builder)
+        static bool TryGetBuilderCore(IEnumerable<BuilderToGenerate> builders, TypeSyntax type, out BuilderToGenerate builder)
         {
             var typeName = type.ToFullString();
             builder = builders.FirstOrDefault(potentialBuilder => StringComparer.Ordinal.Equals(potentialBuilder.FullyQualifiedClassName, typeName));
