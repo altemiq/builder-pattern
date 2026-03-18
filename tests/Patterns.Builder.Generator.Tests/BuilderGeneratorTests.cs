@@ -1,9 +1,6 @@
 ﻿namespace Altemiq.Patterns.Builder.Generator;
 
-using Microsoft;
 using Microsoft.CodeAnalysis;
-
-using Verify = CSharpSourceGeneratorVerifier<BuilderGenerator, DefaultVerifier>;
 
 public class BuilderGeneratorTests
 {
@@ -55,6 +52,63 @@ public class BuilderGeneratorTests
         // Assert the driver use the cached result from InitialExtraction and RemovingNulls
         await Assert.That(result.TrackedSteps["InitialExtraction"].Single().Outputs).All(output => output.Reason is IncrementalStepRunReason.Unchanged);
         await Assert.That(result.TrackedSteps["RemovingNulls"].Single().Outputs).All(output => output.Reason is IncrementalStepRunReason.Unchanged or IncrementalStepRunReason.Cached);
+    }
+
+    [Test]
+    public async Task GenerateExamples()
+    {
+        // get all the source files
+        var solutionDirectory = Path.Combine(GetSolutionDirectory(), "tests", "Patterns.Builder.Examples");
+        ICollection<System.Reflection.Assembly> assemblies =
+        [
+            typeof(GenerateBuilderAttribute).Assembly,
+            typeof(InternalsVisibleTo.ClassWithInternalProperties).Assembly,
+            typeof(Internal.ClassWithInternalProperties).Assembly,
+        ];
+
+        var compilation = Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create(
+            "Patterns.Builder.Examples",
+        Directory
+                .EnumerateFiles(solutionDirectory, "*.cs", SearchOption.AllDirectories)
+                .Where(file => !file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}"))
+                .Select(file => Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(File.ReadAllText(file), path: file)),
+            [
+                .. GetReferenceAssemblies().Assemblies.Select(file => MetadataReference.CreateFromFile(file)),
+                .. assemblies.Select(assembly => MetadataReference.CreateFromFile(assembly.Location))
+            ],
+            new(OutputKind.DynamicallyLinkedLibrary));
+        
+        var generator = new BuilderGenerator();
+        var sourceGenerator = generator.AsSourceGenerator();
+
+        // trackIncrementalGeneratorSteps allows to report info about each step of the generator
+        GeneratorDriver driver = Microsoft.CodeAnalysis.CSharp.CSharpGeneratorDriver.Create(
+            generators: [sourceGenerator],
+            driverOptions: new(default, trackIncrementalGeneratorSteps: true));
+
+        // Run the generator
+        driver = driver.RunGenerators(compilation);
+
+        var runResult = driver.GetRunResult();
+        
+        // ensure we do not have any errors here
+        await Assert.That(runResult.Diagnostics).IsEmpty();
+    
+        static string GetSolutionDirectory()
+        {
+            var current = Environment.CurrentDirectory;
+            while (current is not null)
+            {
+                if (Directory.EnumerateFiles(current, "*.slnx").Any())
+                {
+                    return current;
+                }
+                
+                current = Path.GetDirectoryName(current);
+            }
+            
+            throw new FileNotFoundException();
+        }
     }
 
     [Test]

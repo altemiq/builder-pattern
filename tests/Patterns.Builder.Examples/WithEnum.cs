@@ -1,8 +1,8 @@
 namespace Altemiq.Patterns.Builder.Examples;
 
 [GenerateBuilder]
-public partial class WithEnum
+public partial struct WithEnum
 {
-    [System.ComponentModel.DefaultValue(FileAccess.Write)]
-    public FileAccess FileAccess { get; set; }
+    [System.ComponentModel.DefaultValue(System.IO.FileAccess.Write)]
+    public System.IO.FileAccess FileAccess { get; set; }
 }

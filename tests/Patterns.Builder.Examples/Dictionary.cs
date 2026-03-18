@@ -3,5 +3,5 @@
 [GenerateBuilder]
 public partial class Dictionary
 {
-    public IDictionary<int, string> Values { get; } = new Dictionary<int, string>();
+    public System.Collections.Generic.IDictionary<int, string> Values { get; } = new System.Collections.Generic.Dictionary<int, string>();
 }

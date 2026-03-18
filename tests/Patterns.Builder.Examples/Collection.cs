@@ -3,5 +3,5 @@
 [GenerateBuilder]
 public partial class Collection
 {
-    public ICollection<string> Values { get; } = [];
+    public System.Collections.Generic.ICollection<string> Values { get; } = [];
 }
