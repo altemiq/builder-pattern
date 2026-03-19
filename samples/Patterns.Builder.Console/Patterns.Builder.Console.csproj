@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Patterns.Builder.Attributes\Patterns.Builder.Attributes.csproj" />
-    <ProjectReference Include="..\..\src\Patterns.Builder.Generator\Patterns.Builder.Generator.csproj" />
+    <ProjectReference Include="..\..\src\Patterns.Builder.Generators\Patterns.Builder.Generators.csproj" />
     <ProjectReference Include="..\Patterns.Builder.InternalsVisibleTo\Patterns.Builder.InternalsVisibleTo.csproj" />
     <ProjectReference Include="..\Patterns.Builder.Internal\Patterns.Builder.Internal.csproj" />
   </ItemGroup>

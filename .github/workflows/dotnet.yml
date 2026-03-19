@@ -59,7 +59,7 @@ jobs:
 
       - name: Run local/get-properties@v1
         id: msbuild
-        working-directory: src/Patterns.Builder.Generator
+        working-directory: src/Patterns.Builder.Generators
         run: |
           suffix=alpha
           if [ ${{ github.event_name }} == push ];

@@ -2,8 +2,9 @@
 
   <PropertyGroup>
     <Company>Altemiq</Company>
-    <RootNamespace>$(Company).$(MSBuildProjectName)</RootNamespace>
-    <RootNamespace>$(RootNamespace.Replace('.Tests', ''))</RootNamespace>
+    <_RootNamespace>$(Company).$(MSBuildProjectName)</_RootNamespace>
+    <AssemblyName>$(_RootNamespace)</AssemblyName>
+    <RootNamespace>$(_RootNamespace.Replace('.Tests', ''))</RootNamespace>
     <ImplicitUsings>true</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>

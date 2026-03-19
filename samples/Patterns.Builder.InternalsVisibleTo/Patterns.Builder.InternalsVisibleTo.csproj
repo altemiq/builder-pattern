@@ -8,8 +8,8 @@
   
   <ItemGroup>
     <InternalsVisibleTo Include="Altemiq.Patterns.Builder.Console" />
-    <InternalsVisibleTo Include="Patterns.Builder.Examples" />
-    <InternalsVisibleTo Include="Patterns.Builder.Generator.Tests" />
+    <InternalsVisibleTo Include="Altemiq.Patterns.Builder.Examples" />
+    <InternalsVisibleTo Include="Altemiq.Patterns.Builder.Generators.Tests" />
   </ItemGroup>
 
 </Project>

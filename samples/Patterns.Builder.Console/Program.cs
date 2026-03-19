@@ -17,7 +17,7 @@ var inputCompilation = CSharpCompilation.Create(
     new(OutputKind.ConsoleApplication));
 
 // Create the driver that will control the generation, passing in our generator
-GeneratorDriver driver = CSharpGeneratorDriver.Create(new Altemiq.Patterns.Builder.Generator.BuilderGenerator());
+GeneratorDriver driver = CSharpGeneratorDriver.Create(new Altemiq.Patterns.Builder.Generators.BuilderGenerator());
 
 // Or we can look at the results directly:
 var runResult = driver

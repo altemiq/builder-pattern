@@ -14,11 +14,11 @@
     <File Path="src/Directory.Build.props" />
     <File Path="src/Directory.Packages.props" />
     <Project Path="src/Patterns.Builder.Attributes/Patterns.Builder.Attributes.csproj" />
-    <Project Path="src/Patterns.Builder.Generator/Patterns.Builder.Generator.csproj" Id="a21761a8-d312-4f0c-944e-2cc447afdc67" />
+    <Project Path="src/Patterns.Builder.Generators/Patterns.Builder.Generators.csproj" Id="a21761a8-d312-4f0c-944e-2cc447afdc67" />
   </Folder>
   <Folder Name="/tests/">
     <File Path="tests/Directory.Build.props" />
     <Project Path="tests/Patterns.Builder.Examples/Patterns.Builder.Examples.csproj" Id="ca19b8bf-6fc6-49cb-be57-64acae98a8e7" />
-    <Project Path="tests/Patterns.Builder.Generator.Tests/Patterns.Builder.Generator.Tests.csproj" />
+    <Project Path="tests/Patterns.Builder.Generators.Tests/Patterns.Builder.Generators.Tests.csproj" />
   </Folder>
 </Solution>
