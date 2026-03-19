@@ -46,13 +46,10 @@ internal static class SyntaxExtensions
                 throw new ArgumentOutOfRangeException(nameof(parameters));
             }
 
-            var @namespace = type.Namespace is { } n
-                ? SyntaxFactory.QualifiedName(n)
-                : throw new InvalidOperationException();
-
-            return SyntaxFactory.QualifiedName(
-                @namespace,
-                SyntaxFactory.GenericName(SyntaxFactory.Identifier(name), SyntaxFactory.TypeArgumentList(parameterList)));
+            var genericName = SyntaxFactory.GenericName(SyntaxFactory.Identifier(name), SyntaxFactory.TypeArgumentList(parameterList));
+            return type is { Namespace: { } n }
+                ? SyntaxFactory.QualifiedName(SyntaxFactory.QualifiedName(n), genericName)
+                : genericName;
         }
     }
 
