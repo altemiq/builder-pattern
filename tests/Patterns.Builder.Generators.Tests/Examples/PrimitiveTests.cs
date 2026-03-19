@@ -6,11 +6,8 @@ public class PrimitiveTests
     public async Task SetValue()
     {
         const int Value = 10;
-        var builder = Builder.Examples.Primitive.CreateBuilder();
-        await Assert.That(builder).IsNotNull();
-
-        await Assert.That(builder.WithNotNullable(Value)).IsNotNull();
-        await Assert.That(builder.Build())
+        await Assert.That(Builder.Examples.Primitive.CreateBuilder().WithNotNullable(Value).Build)
+            .ThrowsNothing().And
             .Member(x => x.NotNullable, value => value.IsEqualTo(Value)).And
             .Member(x => x.Nullable, value => value.IsNull());
     }

@@ -10,7 +10,8 @@ public class PrimitiveBuilderTests
         await Assert.That(builder).IsNotNull();
 
         await Assert.That(builder.WithNotNullable(Value)).IsNotNull();
-        await Assert.That(builder.Build())
+        await Assert.That(builder.Build)
+            .ThrowsNothing().And
             .Member(x => x.NotNullable, value => value.IsEqualTo(Value)).And
             .Member(x => x.Nullable, value => value.IsNull());
     }

@@ -5,8 +5,9 @@ public class DictionaryTests
     [Test]
     public async Task AddKeyValue()
     {
-        var builder = Builder.Examples.Dictionary.CreateBuilder();
-        var dictionary = await Assert.That(builder.AddValue(1, "test").Build()).IsNotNull();
+        var dictionary = await Assert.That(Builder.Examples.Dictionary.CreateBuilder().AddValue(1, "test").Build)
+            .ThrowsNothing().And
+            .IsNotNull();
         await Assert.That(dictionary.Values).ContainsKeyWithValue(1, "test");
     }
 }

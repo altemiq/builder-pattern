@@ -5,14 +5,16 @@ public class CollectionTests
     [Test]
     public async Task AddValue()
     {
-        await Assert.That(Builder.Examples.Collection.CreateBuilder().AddValue("test").Build())
+        await Assert.That(Builder.Examples.Collection.CreateBuilder().AddValue("test").Build)
+            .ThrowsNothing().And
             .Member(t => t.Values, values => values.IsEquivalentTo(["test"]));
     }
 
     [Test]
     public async Task AddValueViaConstructor()
     {
-        await Assert.That(Builder.Examples.Collection.CreateBuilder().AddValue(['t', 'e', 's', 't']).Build())
+        await Assert.That(Builder.Examples.Collection.CreateBuilder().AddValue(['t', 'e', 's', 't']).Build)
+            .ThrowsNothing().And
             .Member(t => t.Values, values => values.IsEquivalentTo(["test"]));
     }
 }
