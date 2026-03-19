@@ -77,7 +77,7 @@ internal static partial class InternalGenerator
                             XmlText(" value.")),
                         XmlText(XmlTextNewLine(Constants.NewLine)),
                         XmlParamElement(
-                            property.FieldName,
+                            property.FieldName.TrimStart('@'),
                             XmlText($"The {property.FieldName.Humanize(LetterCasing.LowerCase)} value.")),
                         XmlText(XmlTextNewLine(Constants.NewLine)),
                         BuilderReturn,
@@ -127,7 +127,7 @@ internal static partial class InternalGenerator
                             XmlText(" value via a factory.")),
                         XmlText(XmlTextNewLine(Constants.NewLine)),
                         XmlParamElement(
-                            property.FieldName,
+                            property.FieldName.TrimStart('@'),
                             XmlText($"The {property.FieldName.Humanize(LetterCasing.LowerCase)} factory.")),
                         XmlText(XmlTextNewLine(Constants.NewLine)),
                         BuilderReturn,

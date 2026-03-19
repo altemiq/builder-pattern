@@ -31,7 +31,7 @@ internal static partial class InternalGenerator
             ? GetBuilderMethods(className, builderName, property, suffix, singularFieldName, typeArgument, builder, useCollectionExpressions)
             : GetBasicMembers(className, builderName, property, suffix, singularFieldName, typeArgument, useCollectionExpressions);
 
-        static SeparatedSyntaxList<ParameterSyntax> GetParameter(TypeSyntax type, string singleName)
+        static SeparatedSyntaxList<ParameterSyntax> GetParameter(string singleName, TypeSyntax type)
         {
             return SingletonSeparatedList(Parameter(Identifier(singleName)).WithType(type));
         }
@@ -78,13 +78,13 @@ internal static partial class InternalGenerator
                                 XmlText(" collection.")),
                             XmlText(XmlTextNewLine(Constants.NewLine)),
                             XmlParamElement(
-                                singularFieldName,
+                                singularFieldName.TrimStart('@'),
                                 XmlText($"The {singularFieldName.Humanize(LetterCasing.LowerCase)} to add.")),
                             XmlText(XmlTextNewLine(Constants.NewLine)),
                             BuilderReturn,
                             XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
                 .WithParameterList(
-                    ParameterList(GetParameter(typeArgument, singularFieldName)))
+                    ParameterList(GetParameter(singularFieldName, typeArgument)))
                 .WithBody(
                     Block(
                         ExpressionStatement(
@@ -218,13 +218,13 @@ internal static partial class InternalGenerator
                                 XmlText(" collection.")),
                             XmlText(XmlTextNewLine(Constants.NewLine)),
                             XmlParamElement(
-                                singularFieldName,
+                                singularFieldName.TrimStart('@'),
                                 XmlText($"The {singularFieldName.Humanize(LetterCasing.LowerCase)} to add.")),
                             XmlText(XmlTextNewLine(Constants.NewLine)),
                             BuilderReturn,
                             XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
                 .WithParameterList(
-                    ParameterList(GetParameter(typeArgument, singularFieldName)))
+                    ParameterList(GetParameter(singularFieldName, typeArgument)))
                 .WithBody(
                     Block(
                         ExpressionStatement(
@@ -254,7 +254,7 @@ internal static partial class InternalGenerator
                         Token(property.Accessibility)))
                 .WithParameterList(
                     ParameterList(
-                        GetParameter(funcType, singularFieldName)))
+                        GetParameter(singularFieldName, funcType)))
                 .WithLeadingTrivia(
                     Trivia(
                         DocumentationComment(
@@ -268,8 +268,8 @@ internal static partial class InternalGenerator
                                 XmlText(" collection via a factory.")),
                             XmlText(XmlTextNewLine(Constants.NewLine)),
                             XmlParamElement(
-                                property.FieldName,
-                                XmlText($"The {property.FieldName.Humanize(LetterCasing.LowerCase)} factory.")),
+                                singularFieldName.TrimStart('@'),
+                                XmlText($"The {singularFieldName.Humanize(LetterCasing.LowerCase)} factory.")),
                             XmlText(XmlTextNewLine(Constants.NewLine)),
                             BuilderReturn,
                             XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
@@ -386,7 +386,7 @@ internal static partial class InternalGenerator
                             XmlText(XmlTextNewLine(Constants.NewLine)),
                             XmlParamElement(
                                 ActionParameterName,
-                                XmlText($"The {property.FieldName.Humanize(LetterCasing.LowerCase)} action.")),
+                                XmlText($"The {singularFieldName.Humanize(LetterCasing.LowerCase)} action.")),
                             XmlText(XmlTextNewLine(Constants.NewLine)),
                             BuilderReturn,
                             XmlText(XmlTextNewLine(Constants.NewLine, continueXmlDocumentationComment: false)))))
