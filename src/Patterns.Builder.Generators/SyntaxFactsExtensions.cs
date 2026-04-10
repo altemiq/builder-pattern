@@ -4,12 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-#pragma warning disable IDE0130, CheckNamespace
 namespace Altemiq.Patterns.Builder.Generators;
-
-using Microsoft.CodeAnalysis.CSharp;
-
-#pragma warning restore IDE0130, CheckNamespace
 
 /// <summary>
 /// The <see cref="SyntaxFacts"/> extensions.

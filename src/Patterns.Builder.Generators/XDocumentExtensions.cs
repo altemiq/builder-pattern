@@ -7,9 +7,6 @@
 namespace Altemiq.Patterns.Builder.Generators;
 
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 /// <summary>
 /// The <see cref="System.Xml.Linq"/> extensions.

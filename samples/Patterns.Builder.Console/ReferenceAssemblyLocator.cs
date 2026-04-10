@@ -13,35 +13,17 @@ public class ReferenceAssemblyLocator
         }
 
         var dotnetRoot = GetDotNetRoot();
+        var enumerable = packs
+            .Select(packId => FindPackRefDirectory(dotnetRoot, packId, targetFramework))
+            .OfType<string>()
+            .SelectMany(refDir => Directory.EnumerateFiles(refDir, "*.dll"))
+            .Select(dll => Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(dll, documentation: GetXmlDocumentation(dll, includeXmlDocs)));
 
         var any = false;
-        foreach (var packId in packs)
+        foreach (var reference in enumerable)
         {
-            var refDir = FindPackRefDirectory(dotnetRoot, packId, targetFramework);
-            if (refDir is null)
-            {
-                // not installed; skip (or you can throw)
-                continue;
-            }
-
-            foreach (var dll in Directory.EnumerateFiles(refDir, "*.dll"))
-            {
-                if (!includeXmlDocs)
-                {
-                    any = true;
-                    yield return Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(dll);
-                    continue;
-                }
-
-                var xml = Path.ChangeExtension(dll, ".xml");
-
-                var doc = File.Exists(xml)
-                    ? Microsoft.CodeAnalysis.XmlDocumentationProvider.CreateFromFile(xml)
-                    : null;
-
-                any = true;
-                yield return Microsoft.CodeAnalysis.MetadataReference.CreateFromFile(dll, documentation: doc);
-            }
+            any = true;
+            yield return reference;
         }
 
         if (any)
@@ -123,6 +105,13 @@ public class ReferenceAssemblyLocator
                 .OrderByDescending(Path.GetFileName)
                 .Select(versionFolder => Path.Combine(versionFolder, "ref", tfm))
                 .FirstOrDefault(Directory.Exists);
+        }
+
+        static Microsoft.CodeAnalysis.XmlDocumentationProvider? GetXmlDocumentation(string path, bool includeXmlDocs)
+        {
+            return includeXmlDocs && Path.ChangeExtension(path, ".xml") is { } xmlPath && File.Exists(xmlPath)
+                ? Microsoft.CodeAnalysis.XmlDocumentationProvider.CreateFromFile(xmlPath)
+                : null;
         }
     }
 }

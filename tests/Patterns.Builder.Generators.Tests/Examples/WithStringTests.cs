@@ -7,7 +7,7 @@ public class WithStringTests
     {
         await Assert.That(Builder.Examples.WithString.CreateBuilder().WithNotNullable("TEST").Build)
             .ThrowsNothing().And
-            .Member(c => c.NotNullable, notNullable => notNullable.IsEqualTo("TEST")).And
-            .Member(c => c.Nullable!, nullable => nullable.IsNull());
+            .Member(static c => c.NotNullable, static notNullable => notNullable.IsEqualTo("TEST")).And
+            .Member(static c => c.Nullable!, static nullable => nullable.IsNull());
     }
 }

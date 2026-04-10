@@ -7,7 +7,6 @@
 namespace Altemiq.Patterns.Builder.Generators;
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 /// <summary>
@@ -109,39 +108,40 @@ public class BuilderGenerator : IIncrementalGenerator
 
             foreach (var attribute in context.Attributes)
             {
-                if (attribute.AttributeClass is { Name: var name, IsGenericType: true, TypeArguments: [var classTypeSymbol] }
-                    && (StringComparer.Ordinal.Equals(name, TypeNames.GenerateBuilderForAttributeShortName) || StringComparer.Ordinal.Equals(name, TypeNames.GenerateBuilderForAttributeLongName)))
+                if (attribute.AttributeClass is not { Name: var name, IsGenericType: true, TypeArguments: [var classTypeSymbol] }
+                    || (!StringComparer.Ordinal.Equals(name, TypeNames.GenerateBuilderForAttributeShortName) && !StringComparer.Ordinal.Equals(name, TypeNames.GenerateBuilderForAttributeLongName)))
                 {
-                    // get the information about the target
-                    cancellationToken.ThrowIfCancellationRequested();
+                    continue;
+                }
 
-                    var collectionTypeSymbol = context.SemanticModel.Compilation.GetTypeByMetadataName("System.Collections.Generic.ICollection`1");
-                    var dictionaryTypeSymbol = context.SemanticModel.Compilation.GetTypeByMetadataName("System.Collections.Generic.IDictionary`2");
+                cancellationToken.ThrowIfCancellationRequested();
 
-                    var internalsVisiblyTo = classTypeSymbol.ContainingAssembly.GivesAccessTo(builderTypeSymbol.ContainingAssembly);
+                var collectionTypeSymbol = context.SemanticModel.Compilation.GetTypeByMetadataName("System.Collections.Generic.ICollection`1");
+                var dictionaryTypeSymbol = context.SemanticModel.Compilation.GetTypeByMetadataName("System.Collections.Generic.IDictionary`2");
 
-                    // get the properties
-                    var properties = classTypeSymbol
-                        .GetMembers()
-                        .Where(m => !m.IsStatic)
-                        .OfType<IPropertySymbol>()
-                        .Select(propertySymbol => PropertyToGenerate.Create(propertySymbol, collectionTypeSymbol, dictionaryTypeSymbol))
-                        .Where(property => (internalsVisiblyTo && property.Accessibility is SyntaxKind.InternalKeyword) || property.Accessibility is SyntaxKind.PublicKeyword)
-                        .ToImmutableArray();
+                var internalsVisiblyTo = classTypeSymbol.ContainingAssembly.GivesAccessTo(builderTypeSymbol.ContainingAssembly);
 
-                    return new BuilderToGenerate(
-                        builderTypeSymbol.Name,
-                        builderTypeSymbol.ToString(),
-                        classTypeSymbol.Name,
-                        classTypeSymbol.ToString(),
-                        GetClassSyntaxKind(context.TargetNode),
-                        GetBuilderNamespace(builderTypeSymbol),
-                        properties.WithValueSemantics());
+                // get the properties
+                var properties = classTypeSymbol
+                    .GetMembers()
+                    .Where(m => !m.IsStatic)
+                    .OfType<IPropertySymbol>()
+                    .Select(propertySymbol => PropertyToGenerate.Create(propertySymbol, collectionTypeSymbol, dictionaryTypeSymbol))
+                    .Where(property => (internalsVisiblyTo && property.Accessibility is SyntaxKind.InternalKeyword) || property.Accessibility is SyntaxKind.PublicKeyword)
+                    .ToImmutableArray();
 
-                    static string GetBuilderNamespace(ITypeSymbol typeSymbol)
-                    {
-                        return typeSymbol.ContainingNamespace.IsGlobalNamespace ? string.Empty : typeSymbol.ContainingNamespace.ToString();
-                    }
+                return new BuilderToGenerate(
+                    builderTypeSymbol.Name,
+                    builderTypeSymbol.ToString(),
+                    classTypeSymbol.Name,
+                    classTypeSymbol.ToString(),
+                    GetClassSyntaxKind(context.TargetNode),
+                    GetBuilderNamespace(builderTypeSymbol),
+                    properties.WithValueSemantics());
+
+                static string GetBuilderNamespace(ITypeSymbol typeSymbol)
+                {
+                    return typeSymbol.ContainingNamespace.IsGlobalNamespace ? string.Empty : typeSymbol.ContainingNamespace.ToString();
                 }
             }
 

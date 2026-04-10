@@ -3,5 +3,5 @@
 [GenerateBuilder]
 public partial class WithBuilder
 {
-    public required Primitive PrimitiveViaBuilder { get; set; }
+    public required Primitive Primitive { get; set; }
 }

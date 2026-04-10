@@ -7,7 +7,7 @@ public class CollectionTests
     {
         await Assert.That(Builder.Examples.Collection.CreateBuilder().AddValue("test").Build)
             .ThrowsNothing().And
-            .Member(t => t.Values, values => values.IsEquivalentTo(["test"]));
+            .Member(static t => t.Values, static values => values.IsEquivalentTo(["test"]));
     }
 
     [Test]
@@ -15,6 +15,6 @@ public class CollectionTests
     {
         await Assert.That(Builder.Examples.Collection.CreateBuilder().AddValue(['t', 'e', 's', 't']).Build)
             .ThrowsNothing().And
-            .Member(t => t.Values, values => values.IsEquivalentTo(["test"]));
+            .Member(static t => t.Values, static values => values.IsEquivalentTo(["test"]));
     }
 }

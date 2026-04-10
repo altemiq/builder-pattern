@@ -8,8 +8,6 @@ namespace Altemiq.Patterns.Builder.Generators;
 
 using System.Collections.Immutable;
 using Humanizer;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 /// <summary>
 /// The property to generate.
@@ -113,23 +111,20 @@ internal readonly record struct PropertyToGenerate(
             while (true)
             {
                 // if this is a nullable value type, then get the value type
-                if (type.NullableAnnotation is NullableAnnotation.Annotated
-                    && type.IsValueType
-                    && type is INamedTypeSymbol { TypeArguments: [var nullableTypeArgument] })
+                if (type is INamedTypeSymbol { NullableAnnotation: NullableAnnotation.Annotated, IsValueType: true, TypeArguments: [var nullableTypeArgument] })
                 {
                     type = nullableTypeArgument;
-                    continue;
                 }
-
-                if (collection && type is INamedTypeSymbol { TypeArguments: [var collectionTypeArgument] })
+                else if (collection && type is INamedTypeSymbol { TypeArguments: [var collectionTypeArgument] })
                 {
                     type = collectionTypeArgument;
-                    continue;
                 }
-
-                return type is INamedTypeSymbol { InstanceConstructors: var instanceConstructors }
-                    ? instanceConstructors
-                    : [];
+                else
+                {
+                    return type is INamedTypeSymbol { InstanceConstructors: var instanceConstructors }
+                        ? instanceConstructors
+                        : [];
+                }
             }
         }
 
@@ -166,52 +161,53 @@ internal readonly record struct PropertyToGenerate(
                     && (StringComparer.Ordinal.Equals(name, TypeNames.DefaultValueAttributeShortName) ||
                         StringComparer.Ordinal.Equals(name, TypeNames.DefaultValueAttributeLongName)))
                 {
-                    if (attribute.ConstructorArguments is [var defaultValueConstant])
+                    switch (attribute.ConstructorArguments)
                     {
-                        return CreateExpressionFromTypedConstant(defaultValueConstant);
-                    }
+                        case [var defaultValueConstant]:
+                            return CreateExpressionFromTypedConstant(defaultValueConstant);
 
-                    // converter based
-                    if (attribute.ConstructorArguments is [var typeArgument, var stringArgument])
-                    {
-                        // this needs to be an expression
-                        const string defaultValueAttribute = nameof(defaultValueAttribute);
-                        return SyntaxFactory.ParenthesizedLambdaExpression()
-                            .WithBlock(
-                                SyntaxFactory.Block(
-                                    SyntaxFactory.LocalDeclarationStatement(
-                                        SyntaxFactory.VariableDeclaration(
-                                                SyntaxFactory.IdentifierName(
-                                                    SyntaxFactory.Identifier(
-                                                        SyntaxFactory.TriviaList(),
-                                                        SyntaxKind.VarKeyword,
-                                                        SyntaxFacts.GetText(SyntaxKind.VarKeyword),
-                                                        SyntaxFacts.GetText(SyntaxKind.VarKeyword),
-                                                        SyntaxFactory.TriviaList())))
-                                            .WithVariables(
-                                                SyntaxFactory.SingletonSeparatedList(
-                                                    SyntaxFactory.VariableDeclarator(
-                                                            SyntaxFactory.Identifier(defaultValueAttribute))
-                                                        .WithInitializer(
-                                                            SyntaxFactory.EqualsValueClause(
-                                                                SyntaxFactory.ObjectCreationExpression(
-                                                                        typeof(System.ComponentModel.DefaultValueAttribute).ToTypeSyntax([]))
-                                                                    .WithArgumentList(
-                                                                        SyntaxFactory.ArgumentList(
-                                                                            SyntaxFactory.SeparatedList<ArgumentSyntax>(
-                                                                            [
-                                                                                SyntaxFactory.Argument(
-                                                                                    CreateExpressionFromTypedConstant(typeArgument)),
-                                                                                SyntaxFactory.Argument(
-                                                                                    CreateExpressionFromTypedConstant(stringArgument)),
-                                                                            ])))))))),
-                                    SyntaxFactory.ReturnStatement(
-                                        SyntaxFactory.CastExpression(
-                                            propertySymbol.Type.ToType(),
-                                            SyntaxFactory.MemberAccessExpression(
-                                                SyntaxKind.SimpleMemberAccessExpression,
-                                                SyntaxFactory.IdentifierName(defaultValueAttribute),
-                                                SyntaxFactory.IdentifierName(nameof(System.ComponentModel.DefaultValueAttribute.Value)))))));
+                        // converter based
+                        case [var typeArgument, var stringArgument]:
+                            {
+                                // this needs to be an expression
+                                const string defaultValueAttribute = nameof(defaultValueAttribute);
+                                return ParenthesizedLambdaExpression()
+                                    .WithBlock(
+                                        Block(
+                                            LocalDeclarationStatement(
+                                                VariableDeclaration(
+                                                        IdentifierName(
+                                                            Identifier(
+                                                                TriviaList(),
+                                                                SyntaxKind.VarKeyword,
+                                                                SyntaxFacts.GetText(SyntaxKind.VarKeyword),
+                                                                SyntaxFacts.GetText(SyntaxKind.VarKeyword),
+                                                                TriviaList())))
+                                                    .WithVariables(
+                                                        SingletonSeparatedList(
+                                                            VariableDeclarator(
+                                                                    Identifier(defaultValueAttribute))
+                                                                .WithInitializer(
+                                                                    EqualsValueClause(
+                                                                        ObjectCreationExpression(
+                                                                                typeof(System.ComponentModel.DefaultValueAttribute).ToTypeSyntax([]))
+                                                                            .WithArgumentList(
+                                                                                ArgumentList(
+                                                                                    SeparatedList<ArgumentSyntax>(
+                                                                                    [
+                                                                                        Argument(
+                                                                                            CreateExpressionFromTypedConstant(typeArgument)),
+                                                                                        Argument(
+                                                                                            CreateExpressionFromTypedConstant(stringArgument)),
+                                                                                    ])))))))),
+                                            ReturnStatement(
+                                                CastExpression(
+                                                    propertySymbol.Type.ToType(),
+                                                    MemberAccessExpression(
+                                                        SyntaxKind.SimpleMemberAccessExpression,
+                                                        IdentifierName(defaultValueAttribute),
+                                                        IdentifierName(nameof(System.ComponentModel.DefaultValueAttribute.Value)))))));
+                            }
                     }
                 }
             }
@@ -287,7 +283,7 @@ internal readonly record struct PropertyToGenerate(
     {
         return constant switch
         {
-            { IsNull: true } => SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression),
+            { IsNull: true } => LiteralExpression(SyntaxKind.NullLiteralExpression),
             { Kind: TypedConstantKind.Primitive } => GetLiteralExpression(constant),
             { Kind: TypedConstantKind.Enum } => CreateEnumExpression(constant),
             { Kind: TypedConstantKind.Type } => CreateTypeOfExpression(constant),
@@ -310,14 +306,14 @@ internal readonly record struct PropertyToGenerate(
             if (matchingField != null)
             {
                 // MyEnum.MemberName
-                return SyntaxFactory.MemberAccessExpression(
+                return MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.QualifiedName(enumType.ToString()),
-                    SyntaxFactory.IdentifierName(matchingField.Name));
+                    IdentifierName(matchingField.Name));
             }
 
             // If no matching field found, fallback to casting the numeric value
-            return SyntaxFactory.CastExpression(
+            return CastExpression(
                 SyntaxFactory.QualifiedName(enumType.ToString()),
                 GetLiteralExpression(constant));
         }
@@ -326,7 +322,7 @@ internal readonly record struct PropertyToGenerate(
         {
             if (constant.Value is { } value)
             {
-                return SyntaxFactory.TypeOfExpression(
+                return TypeOfExpression(
                     SyntaxFactory.QualifiedName(value.ToString()));
             }
 
@@ -335,12 +331,13 @@ internal readonly record struct PropertyToGenerate(
 
         static LiteralExpressionSyntax GetLiteralExpression(TypedConstant constant)
         {
-            return SyntaxFactory.LiteralExpression(
+            return LiteralExpression(
                 GetLiteralExpressionKind(constant.Value),
                 GetLiteralExpressionToken(constant.Value));
 
-            static SyntaxKind GetLiteralExpressionKind(object? value) =>
-                value switch
+            static SyntaxKind GetLiteralExpressionKind(object? value)
+            {
+                return value switch
                 {
                     int or double or float => SyntaxKind.NumericLiteralExpression,
                     true => SyntaxKind.TrueLiteralExpression,
@@ -349,26 +346,29 @@ internal readonly record struct PropertyToGenerate(
                     null => SyntaxKind.NullLiteralExpression,
                     _ => SyntaxKind.StringLiteralExpression,
                 };
+            }
 
-            static SyntaxToken GetLiteralExpressionToken(object? value) =>
-                value switch
+            static SyntaxToken GetLiteralExpressionToken(object? value)
+            {
+                return value switch
                 {
-                    sbyte i => SyntaxFactory.Literal(i),
-                    byte i => SyntaxFactory.Literal(i),
-                    short i => SyntaxFactory.Literal(i),
-                    ushort i => SyntaxFactory.Literal(i),
-                    int i => SyntaxFactory.Literal(i),
-                    uint i => SyntaxFactory.Literal(i),
-                    long i => SyntaxFactory.Literal(i),
-                    ulong i => SyntaxFactory.Literal(i),
-                    float f => SyntaxFactory.Literal(f),
-                    double f => SyntaxFactory.Literal(f),
-                    decimal f => SyntaxFactory.Literal(f),
-                    char c => SyntaxFactory.Literal(c),
-                    string s => SyntaxFactory.Literal(s),
-                    not null => SyntaxFactory.Literal(value.ToString()),
-                    _ => SyntaxFactory.Token(SyntaxKind.NullKeyword),
+                    sbyte i => Literal(i),
+                    byte i => Literal(i),
+                    short i => Literal(i),
+                    ushort i => Literal(i),
+                    int i => Literal(i),
+                    uint i => Literal(i),
+                    long i => Literal(i),
+                    ulong i => Literal(i),
+                    float f => Literal(f),
+                    double f => Literal(f),
+                    decimal f => Literal(f),
+                    char c => Literal(c),
+                    string s => Literal(s),
+                    not null => Literal(value.ToString()),
+                    _ => Token(SyntaxKind.NullKeyword),
                 };
+            }
         }
     }
 }

@@ -7,9 +7,6 @@
 namespace Altemiq.Patterns.Builder.Generators;
 
 using Humanizer;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 /// <content>
 /// The <see cref="IDictionary{TKey, TValue}"/> generators.

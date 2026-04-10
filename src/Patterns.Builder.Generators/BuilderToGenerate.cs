@@ -21,6 +21,6 @@ internal readonly record struct BuilderToGenerate(
     string FullQualifiedBuilderName,
     string ClassName,
     string FullyQualifiedClassName,
-    Microsoft.CodeAnalysis.CSharp.SyntaxKind ClassDefinition,
+    SyntaxKind ClassDefinition,
     string Namespace,
     System.Collections.Immutable.IImmutableList<PropertyToGenerate> Properties);

@@ -4,13 +4,9 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-#pragma warning disable IDE0130, CheckNamespace
 namespace Altemiq.Patterns.Builder.Generators;
 
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-
-#pragma warning restore IDE0130, CheckNamespace
 
 #pragma warning disable RCS1263, SA1101
 
@@ -31,7 +27,7 @@ internal static class SyntaxExtensions
         /// <param name="parameters">The type parameters.</param>
         /// <returns>The type syntax.</returns>
         /// <exception cref="ArgumentOutOfRangeException">The parameters are the wrong length.</exception>
-        public Microsoft.CodeAnalysis.CSharp.Syntax.NameSyntax ToTypeSyntax(IEnumerable<Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax> parameters)
+        public NameSyntax ToTypeSyntax(IEnumerable<TypeSyntax> parameters)
         {
             if (!type.IsGenericTypeDefinition)
             {
@@ -44,15 +40,15 @@ internal static class SyntaxExtensions
             var name = type.Name[..index];
             var count = int.Parse(type.Name[(index + 1)..], System.Globalization.CultureInfo.InvariantCulture);
 
-            var parameterList = SyntaxFactory.SeparatedList(parameters);
+            var parameterList = SeparatedList(parameters);
             if (count != parameterList.Count)
             {
                 throw new ArgumentOutOfRangeException(nameof(parameters));
             }
 
-            var genericName = SyntaxFactory.GenericName(SyntaxFactory.Identifier(name), SyntaxFactory.TypeArgumentList(parameterList));
+            var genericName = GenericName(Identifier(name), TypeArgumentList(parameterList));
             return type is { Namespace: { } n }
-                ? SyntaxFactory.QualifiedName(SyntaxFactory.QualifiedName(n), genericName)
+                ? QualifiedName(SyntaxFactory.QualifiedName(n), genericName)
                 : genericName;
         }
     }
@@ -63,15 +59,15 @@ internal static class SyntaxExtensions
     /// <param name="names">The names to qualify.</param>
     /// <returns>The qualified name.</returns>
     /// <exception cref="InvalidOperationException">Could not generate the name.</exception>
-    public static Microsoft.CodeAnalysis.CSharp.Syntax.NameSyntax ToQualifiedName(this IEnumerable<Microsoft.CodeAnalysis.CSharp.Syntax.SimpleNameSyntax> names)
+    public static NameSyntax ToQualifiedName(this IEnumerable<SimpleNameSyntax> names)
     {
         var enumerator = names.GetEnumerator();
         _ = enumerator.MoveNext();
 
-        Microsoft.CodeAnalysis.CSharp.Syntax.NameSyntax? name = enumerator.Current;
+        NameSyntax? name = enumerator.Current;
         while (enumerator.MoveNext() && name is not null && enumerator.Current is not null)
         {
-            name = SyntaxFactory.QualifiedName(name, enumerator.Current);
+            name = QualifiedName(name, enumerator.Current);
         }
 
         enumerator.Dispose();

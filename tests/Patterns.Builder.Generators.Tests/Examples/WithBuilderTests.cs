@@ -5,28 +5,24 @@ public class WithBuilderTests
     [Test]
     public async Task Direct()
     {
-        var builder = Builder.Examples.WithBuilder.CreateBuilder();
-        await Assert.That(builder.WithPrimitiveViaBuilder(new Builder.Examples.Primitive { NotNullable = 1 }).Build)
+        await Assert.That(Builder.Examples.WithBuilder.CreateBuilder().WithPrimitive(new Builder.Examples.Primitive { NotNullable = 1 }).Build)
             .ThrowsNothing().And
-            .Member(c => c.PrimitiveViaBuilder, primitive => primitive.IsEqualTo(new Builder.Examples.Primitive { NotNullable = 1 }));
+            .Member(c => c.Primitive, primitive => primitive.IsEqualTo(new() { NotNullable = 1 }));
     }
 
     [Test]
     public async Task ViaFactory()
     {
-        var builder = Builder.Examples.WithBuilder.CreateBuilder();
-        await Assert.That(builder.WithPrimitiveViaBuilder(() => new Builder.Examples.Primitive { NotNullable = 1 }).Build)
+        await Assert.That(Builder.Examples.WithBuilder.CreateBuilder().WithPrimitive(() => new() { NotNullable = 1 }).Build)
             .ThrowsNothing().And
-            .Member(c => c.PrimitiveViaBuilder, primitive => primitive.IsEqualTo(new Builder.Examples.Primitive { NotNullable = 1 }));
+            .Member(c => c.Primitive, primitive => primitive.IsEqualTo(new() { NotNullable = 1 }));
     }
 
     [Test]
     public async Task ViaBuilder()
     {
-        var builder = Builder.Examples.WithBuilder.CreateBuilder();
-        ;
-        await Assert.That(builder.WithPrimitiveViaBuilder(builder => builder.WithNotNullable(1)).Build)
+        await Assert.That(Builder.Examples.WithBuilder.CreateBuilder().WithPrimitive(builder => builder.WithNotNullable(1)).Build)
             .ThrowsNothing().And
-            .Member(c => c.PrimitiveViaBuilder, primitive => primitive.IsEqualTo(new Builder.Examples.Primitive { NotNullable = 1 }));
+            .Member(c => c.Primitive, primitive => primitive.IsEqualTo(new() { NotNullable = 1 }));
     }
 }

@@ -6,10 +6,6 @@
 
 namespace Altemiq.Patterns.Builder.Generators;
 
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-
 /// <summary>
 /// The internal generator.
 /// </summary>
@@ -150,9 +146,9 @@ internal static partial class InternalGenerator
             if (enableNullable)
             {
                 yield return Trivia(
-                            NullableDirectiveTrivia(
-                                Token(SyntaxKind.EnableKeyword),
-                                isActive: true));
+                    NullableDirectiveTrivia(
+                        Token(SyntaxKind.EnableKeyword),
+                        isActive: true));
             }
         }
     }
@@ -317,15 +313,10 @@ internal static partial class InternalGenerator
         }
     }
 
-    private static SeparatedSyntaxList<TypeSyntax> GetTypeArguments(TypeSyntax typeSyntax)
-    {
-        if (typeSyntax is QualifiedNameSyntax { Right: GenericNameSyntax { TypeArgumentList.Arguments: { } arguments } })
-        {
-            return arguments;
-        }
-
-        throw new InvalidOperationException();
-    }
+    private static SeparatedSyntaxList<TypeSyntax> GetTypeArguments(TypeSyntax typeSyntax) =>
+        typeSyntax is QualifiedNameSyntax { Right: GenericNameSyntax { TypeArgumentList.Arguments: var arguments } }
+            ? arguments
+            : throw new InvalidOperationException();
 
     private static BlockSyntax GetBuilderActionBlock(BuilderToGenerate builder) =>
         Block(

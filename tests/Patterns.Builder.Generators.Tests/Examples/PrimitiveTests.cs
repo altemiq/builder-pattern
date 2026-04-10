@@ -5,10 +5,10 @@ public class PrimitiveTests
     [Test]
     public async Task SetValue()
     {
-        const int Value = 10;
-        await Assert.That(Builder.Examples.Primitive.CreateBuilder().WithNotNullable(Value).Build)
+        const int value = 10;
+        await Assert.That(Builder.Examples.Primitive.CreateBuilder().WithNotNullable(value).Build)
             .ThrowsNothing().And
-            .Member(x => x.NotNullable, value => value.IsEqualTo(Value)).And
-            .Member(x => x.Nullable, value => value.IsNull());
+            .Member(static x => x.NotNullable, static v => v.IsEqualTo(value)).And
+            .Member(static x => x.Nullable, static v => v.IsNull());
     }
 }

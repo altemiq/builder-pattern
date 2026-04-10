@@ -4,15 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-#pragma warning disable IDE0130, CheckNamespace
 namespace Altemiq.Patterns.Builder.Generators;
-#pragma warning restore IDE0130, CheckNamespace
-
-#pragma warning disable RedundantNameQualifier
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-#pragma warning restore RedundantNameQualifier
 
 #pragma warning disable RCS1263, SA1101
 

@@ -6,31 +6,33 @@
 
 namespace Altemiq.Patterns.Builder.Generators;
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+
+#pragma warning disable RCS1263, SA1101
 
 /// <summary>
 /// <see cref="System.Collections.Immutable"/> extensions.
 /// </summary>
 internal static class ImmutableExtensions
 {
-    /// <summary>
-    /// Forces value semantics for the immutable list.
-    /// </summary>
-    /// <typeparam name="T">The type in the list.</typeparam>
+    /// <content>The <see cref="System.Collections.Immutable"/> extensions.</content>
     /// <param name="list">The list to wrap.</param>
-    /// <returns>The list with value semantics.</returns>
-    public static IImmutableList<T> WithValueSemantics<T>(this IImmutableList<T> list) => new ImmutableListWithValueSemantics<T>(list);
+    /// <typeparam name="T">The type in the list.</typeparam>
+    extension<T>(IImmutableList<T> list)
+    {
+        /// <summary>
+        /// Forces value semantics for the immutable list.
+        /// </summary>
+        /// <returns>The list with value semantics.</returns>
+        public IImmutableList<T> WithValueSemantics() => new ImmutableListWithValueSemantics<T>(list);
 
-    /// <summary>
-    /// Forces value semantics for the immutable list.
-    /// </summary>
-    /// <typeparam name="T">The type in the list.</typeparam>
-    /// <param name="list">The list to wrap.</param>
-    /// <param name="comparer">The comparer.</param>
-    /// <returns>The list with value semantics.</returns>
-    public static IImmutableList<T> WithValueSemantics<T>(this IImmutableList<T> list, IEqualityComparer<T> comparer) => new ImmutableListWithValueSemantics<T>(list, comparer);
+        /// <summary>
+        /// Forces value semantics for the immutable list.
+        /// </summary>
+        /// <param name="comparer">The comparer.</param>
+        /// <returns>The list with value semantics.</returns>
+        public IImmutableList<T> WithValueSemantics(IEqualityComparer<T> comparer) => new ImmutableListWithValueSemantics<T>(list, comparer);
+    }
 
     private readonly struct ImmutableListWithValueSemantics<T>(IImmutableList<T> list, IEqualityComparer<T>? comparer = default) : IImmutableList<T>, IEquatable<IImmutableList<T>?>
     {
@@ -78,24 +80,25 @@ internal static class ImmutableExtensions
         {
             unchecked
             {
-                var copiedComparer = comparer;
-                return this.Aggregate(19, (h, i) => (h * 19) + GetHashCodeCore(i, copiedComparer));
+                var actualComparer = comparer ?? new PassThroughComparer();
 
-                static int GetHashCodeCore(T? value, IEqualityComparer<T>? comparer)
+                return this.Aggregate(
+                    (HashCode: 19, Comparer: actualComparer),
+                    static (o, i) => ((o.HashCode * 19) + GetHashCodeCore(i, o.Comparer), o.Comparer),
+                    static o => o.HashCode);
+
+                static int GetHashCodeCore(T? value, IEqualityComparer<T> comparer)
                 {
-                    if (value is null)
-                    {
-                        return 0;
-                    }
-
-                    if (comparer is { } c)
-                    {
-                        return c.GetHashCode(value);
-                    }
-
-                    return value.GetHashCode();
+                    return value is null ? 0 : comparer.GetHashCode(value);
                 }
             }
+        }
+
+        private sealed class PassThroughComparer : IEqualityComparer<T>
+        {
+            public bool Equals(T x, T y) => x!.Equals(y);
+
+            public int GetHashCode(T obj) => obj!.GetHashCode();
         }
     }
 }

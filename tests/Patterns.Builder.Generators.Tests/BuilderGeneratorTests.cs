@@ -17,6 +17,11 @@ public class BuilderGeneratorTests
                     {
                         public System.DateTime PrimitiveValue { get; set; }
                     }
+                    
+                    [Altemiq.Patterns.Builder.GenerateBuilderFor<Test>]
+                    public partial class TestBuilder
+                    {
+                    }
                 }
                 """),
             ],
@@ -49,9 +54,10 @@ public class BuilderGeneratorTests
             .SelectMany(output => output.Outputs);
         await Assert.That(allOutputs).All(output => output.Reason is IncrementalStepRunReason.Cached);
 
-        // Assert the driver use the cached result from InitialExtraction and RemovingNulls
+        // Assert the driver use the cached result from InitialExtraction, InitialExternalExtraction, and RemovingNulls
         await Assert.That(result.TrackedSteps["InitialExtraction"].Single().Outputs).All(output => output.Reason is IncrementalStepRunReason.Unchanged);
-        await Assert.That(result.TrackedSteps["RemovingNulls"].Single().Outputs).All(output => output.Reason is IncrementalStepRunReason.Unchanged or IncrementalStepRunReason.Cached);
+        await Assert.That(result.TrackedSteps["InitialExternalExtraction"].Single().Outputs).All(output => output.Reason is IncrementalStepRunReason.Unchanged);
+        await Assert.That(result.TrackedSteps["RemovingNulls"].SelectMany(x => x.Outputs)).All(output => output.Reason is IncrementalStepRunReason.Unchanged or IncrementalStepRunReason.Cached);
     }
 
     [Test]
@@ -77,7 +83,7 @@ public class BuilderGeneratorTests
                 .. assemblies.Select(assembly => MetadataReference.CreateFromFile(assembly.Location))
             ],
             new(OutputKind.DynamicallyLinkedLibrary));
-        
+
         var generator = new BuilderGenerator();
         var sourceGenerator = generator.AsSourceGenerator();
 
@@ -90,10 +96,10 @@ public class BuilderGeneratorTests
         driver = driver.RunGenerators(compilation);
 
         var runResult = driver.GetRunResult();
-        
+
         // ensure we do not have any errors here
         await Assert.That(runResult.Diagnostics).IsEmpty();
-    
+
         static string GetSolutionDirectory()
         {
             var current = Environment.CurrentDirectory;
@@ -103,10 +109,10 @@ public class BuilderGeneratorTests
                 {
                     return current;
                 }
-                
+
                 current = Path.GetDirectoryName(current);
             }
-            
+
             throw new FileNotFoundException();
         }
     }

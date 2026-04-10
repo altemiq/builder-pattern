@@ -7,6 +7,6 @@ public class WithTypeConverterTests
     {
         await Assert.That(Builder.Examples.WithTypeConverterDefaultValue.CreateBuilder().Build)
             .ThrowsNothing().And
-            .Member(static o => o.Size, size => size.IsEqualTo(new(-1, -2)));
+            .Member(static o => o.Size, static size => size.IsEqualTo(new(-1, -2)));
     }
 }
